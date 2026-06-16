@@ -7,12 +7,11 @@
     <meta name="keywords" content="Anime, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Anime | Template</title>
+    <title>Anime | Home</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap"
-    rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
     <!-- Css Styles -->
     <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
@@ -23,6 +22,110 @@
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        /* User menu styles */
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .user-menu .user-avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-weight: 700;
+            font-size: 16px;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+        .user-menu .user-avatar img {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .user-menu .user-info {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.2;
+        }
+        .user-menu .user-name {
+            font-size: 14px;
+            color: #fff;
+            font-weight: 500;
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-menu .user-email {
+            font-size: 11px;
+            color: rgba(255,255,255,0.6);
+            max-width: 100px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .user-menu .logout-btn {
+            background: rgba(255,255,255,0.15);
+            border: 1px solid rgba(255,255,255,0.2);
+            color: #fff;
+            padding: 5px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s;
+            font-weight: 500;
+        }
+        .user-menu .logout-btn:hover {
+            background: #e74c3c;
+            border-color: #e74c3c;
+        }
+        .header__right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 15px;
+        }
+        .header__right .login-link {
+            color: #fff;
+            font-size: 13px;
+            padding: 6px 18px;
+            background: #e74c3c;
+            border-radius: 20px;
+            transition: all 0.3s;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .header__right .login-link:hover {
+            background: #c0392b;
+            color: #fff;
+        }
+        .header__right .search-switch {
+            color: #fff;
+            font-size: 18px;
+        }
+        /* Mobile responsive */
+        @media (max-width: 991px) {
+            .user-menu .user-email {
+                display: none;
+            }
+            .user-menu .user-name {
+                max-width: 60px;
+                font-size: 13px;
+            }
+        }
+    </style>
 </head>
 
 <body>
@@ -66,7 +169,8 @@
                 <div class="col-lg-2">
                     <div class="header__right">
                         <a href="#" class="search-switch"><span class="icon_search"></span></a>
-                        <a href="./login.html"><span class="icon_profile"></span></a>
+                        <!-- User menu container -->
+                        <div id="userMenuContainer"></div>
                     </div>
                 </div>
             </div>
@@ -706,18 +810,17 @@
                 </div>
             </div>
             <div class="col-lg-3">
-                <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-                  Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                  <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
+                <p>
+                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</footer>
+<!-- Footer Section End -->
 
-              </div>
-          </div>
-      </div>
-  </footer>
-  <!-- Footer Section End -->
-
-  <!-- Search model Begin -->
-  <div class="search-model">
+<!-- Search model Begin -->
+<div class="search-model">
     <div class="h-100 d-flex align-items-center justify-content-center">
         <div class="search-close-switch"><i class="icon_close"></i></div>
         <form class="search-model-form">
@@ -737,6 +840,91 @@
 <script src="js/owl.carousel.min.js"></script>
 <script src="js/main.js"></script>
 
+<!-- Firebase Authentication -->
+<script>
+    // Firebase configuration
+    const firebaseConfig = {
+        apiKey: "AIzaSyDqyJr6gMzwM0HJNeU_BP5EbG5Nxyhpaqw",
+        authDomain: "streaming-hub-67.firebaseapp.com",
+        projectId: "streaming-hub-67",
+        storageBucket: "streaming-hub-67.firebasestorage.app",
+        messagingSenderId: "99843602028",
+        appId: "1:99843602028:web:0a5a52606c2919498c4a49",
+        measurementId: "G-T3S9SEEBD7"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+
+    // Set persistence to LOCAL so user stays logged in
+    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+        .then(() => {
+            console.log('Auth persistence set to LOCAL');
+        })
+        .catch((error) => {
+            console.error('Error setting persistence:', error);
+        });
+
+    // Get user menu container
+    const userMenuContainer = document.getElementById('userMenuContainer');
+
+    // Function to render user menu
+    function renderUserMenu(user) {
+        if (user) {
+            // User is logged in - show user menu
+            const displayName = user.displayName || user.email || 'User';
+            const email = user.email || '';
+            const photoURL = user.photoURL || '';
+            const initial = displayName.charAt(0).toUpperCase();
+
+            userMenuContainer.innerHTML = `
+                <div class="user-menu">
+                    <div class="user-avatar">
+                        ${photoURL ? `<img src="${photoURL}" alt="${displayName}">` : initial}
+                    </div>
+                    <div class="user-info">
+                        <span class="user-name">${displayName}</span>
+                        <span class="user-email">${email}</span>
+                    </div>
+                    <button class="logout-btn" id="logoutBtn">Logout</button>
+                </div>
+            `;
+
+            // Add logout functionality
+            document.getElementById('logoutBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                auth.signOut().then(() => {
+                    console.log('User signed out');
+                    // Page will auto-update via onAuthStateChanged
+                }).catch((error) => {
+                    console.error('Logout error:', error);
+                });
+            });
+
+        } else {
+            // User is logged out - show login link
+            userMenuContainer.innerHTML = `
+                <a href="./login.html" class="login-link">Login</a>
+            `;
+        }
+    }
+
+    // Listen for auth state changes
+    auth.onAuthStateChanged((user) => {
+        console.log('Auth state changed:', user ? user.email : 'No user');
+        renderUserMenu(user);
+        
+        // If user is logged in, you can optionally show a welcome message or update UI
+        if (user) {
+            console.log('Welcome, ' + (user.displayName || user.email));
+        }
+    });
+
+    // Handle initial load - check if user is already logged in
+    // The onAuthStateChanged will handle this
+    console.log('Index page loaded with Firebase auth');
+</script>
 
 </body>
 
