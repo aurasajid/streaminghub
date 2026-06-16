@@ -7,7 +7,7 @@
     <meta name="keywords" content="Anime, unica, creative, html">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Anime | Template</title>
+    <title>Anime | Login</title>
 
     <!-- Google Font -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -23,6 +23,27 @@
     <link rel="stylesheet" href="css/owl.carousel.min.css" type="text/css">
     <link rel="stylesheet" href="css/slicknav.min.css" type="text/css">
     <link rel="stylesheet" href="css/style.css" type="text/css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <style>
+        /* additional spacing for social buttons */
+        .login__social__links ul li {
+            margin-bottom: 10px;
+        }
+        .login__form .error-message {
+            color: #e74c3c;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        .login__form .success-message {
+            color: #2ecc71;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+    </style>
 </head>
 
 <body>
@@ -97,24 +118,25 @@
                 <div class="col-lg-6">
                     <div class="login__form">
                         <h3>Login</h3>
-                        <form action="#">
+                        <form id="loginForm">
                             <div class="input__item">
-                                <input type="text" placeholder="Email address">
+                                <input type="email" id="emailInput" placeholder="Email address" required>
                                 <span class="icon_mail"></span>
                             </div>
                             <div class="input__item">
-                                <input type="text" placeholder="Password">
+                                <input type="password" id="passwordInput" placeholder="Password" required>
                                 <span class="icon_lock"></span>
                             </div>
-                            <button type="submit" class="site-btn">Login Now</button>
+                            <button type="submit" class="site-btn" id="loginBtn">Login Now</button>
+                            <div id="loginMessage" class="error-message"></div>
                         </form>
-                        <a href="#" class="forget_pass">Forgot Your Password?</a>
+                        <a href="#" class="forget_pass" id="forgotPasswordLink">Forgot Your Password?</a>
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <div class="login__register">
-                        <h3>Dont’t Have An Account?</h3>
-                        <a href="#" class="primary-btn">Register Now</a>
+                        <h3>Don’t Have An Account?</h3>
+                        <a href="#" class="primary-btn" id="registerNowBtn">Register Now</a>
                     </div>
                 </div>
             </div>
@@ -124,11 +146,9 @@
                         <div class="login__social__links">
                             <span>or</span>
                             <ul>
-                                <li><a href="#" class="facebook"><i class="fa fa-facebook"></i> Sign in With
-                                Facebook</a></li>
-                                <li><a href="#" class="google"><i class="fa fa-google"></i> Sign in With Google</a></li>
-                                <li><a href="#" class="twitter"><i class="fa fa-twitter"></i> Sign in With Twitter</a>
-                                </li>
+                                <li><a href="#" class="facebook" id="facebookSignIn"><i class="fa fa-facebook"></i> Sign in With Facebook</a></li>
+                                <li><a href="#" class="google" id="googleSignIn"><i class="fa fa-google"></i> Sign in With Google</a></li>
+                                <li><a href="#" class="twitter" id="twitterSignIn"><i class="fa fa-twitter"></i> Sign in With Twitter</a></li>
                             </ul>
                         </div>
                     </div>
@@ -161,18 +181,17 @@
                     </div>
                 </div>
                 <div class="col-lg-3">
-                    <p><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+                    <p>
                       Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-                      <!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. --></p>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
+    <!-- Footer Section End -->
 
-                  </div>
-              </div>
-          </div>
-      </footer>
-      <!-- Footer Section End -->
-
-      <!-- Search model Begin -->
-      <div class="search-model">
+    <!-- Search model Begin -->
+    <div class="search-model">
         <div class="h-100 d-flex align-items-center justify-content-center">
             <div class="search-close-switch"><i class="icon_close"></i></div>
             <form class="search-model-form">
@@ -192,6 +211,157 @@
     <script src="js/owl.carousel.min.js"></script>
     <script src="js/main.js"></script>
 
+    <!-- Firebase config and authentication logic -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // Firebase configuration
+            const firebaseConfig = {
+                apiKey: "AIzaSyDqyJr6gMzwM0HJNeU_BP5EbG5Nxyhpaqw",
+                authDomain: "streaming-hub-67.firebaseapp.com",
+                projectId: "streaming-hub-67",
+                storageBucket: "streaming-hub-67.firebasestorage.app",
+                messagingSenderId: "99843602028",
+                appId: "1:99843602028:web:0a5a52606c2919498c4a49",
+                measurementId: "G-T3S9SEEBD7"
+            };
+
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+
+            // DOM elements
+            const emailInput = document.getElementById('emailInput');
+            const passwordInput = document.getElementById('passwordInput');
+            const loginForm = document.getElementById('loginForm');
+            const loginMessage = document.getElementById('loginMessage');
+            const loginBtn = document.getElementById('loginBtn');
+
+            // --- Email/Password Login ---
+            loginForm.addEventListener('submit', function(e) {
+                e.preventDefault();
+                const email = emailInput.value.trim();
+                const password = passwordInput.value.trim();
+
+                if (!email || !password) {
+                    loginMessage.textContent = 'Please fill in both fields.';
+                    loginMessage.style.color = '#e74c3c';
+                    return;
+                }
+
+                loginBtn.disabled = true;
+                loginBtn.textContent = 'Logging in...';
+                loginMessage.textContent = '';
+
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // success
+                        loginMessage.textContent = 'Login successful! Redirecting...';
+                        loginMessage.style.color = '#2ecc71';
+                        // redirect after short delay
+                        setTimeout(() => {
+                            window.location.href = './index.html';
+                        }, 1500);
+                    })
+                    .catch((error) => {
+                        loginMessage.textContent = error.message;
+                        loginMessage.style.color = '#e74c3c';
+                        loginBtn.disabled = false;
+                        loginBtn.textContent = 'Login Now';
+                    });
+            });
+
+            // --- Forgot Password ---
+            document.getElementById('forgotPasswordLink').addEventListener('click', function(e) {
+                e.preventDefault();
+                const email = emailInput.value.trim();
+                if (!email) {
+                    loginMessage.textContent = 'Please enter your email address first.';
+                    loginMessage.style.color = '#e74c3c';
+                    return;
+                }
+                auth.sendPasswordResetEmail(email)
+                    .then(() => {
+                        loginMessage.textContent = 'Password reset email sent! Check your inbox.';
+                        loginMessage.style.color = '#2ecc71';
+                    })
+                    .catch((error) => {
+                        loginMessage.textContent = error.message;
+                        loginMessage.style.color = '#e74c3c';
+                    });
+            });
+
+            // --- Register Now (dummy) ---
+            document.getElementById('registerNowBtn').addEventListener('click', function(e) {
+                e.preventDefault();
+                // redirect to signup page (if exists)
+                window.location.href = './signup.html';
+            });
+
+            // --- Google Sign-In ---
+            document.getElementById('googleSignIn').addEventListener('click', function(e) {
+                e.preventDefault();
+                const provider = new firebase.auth.GoogleAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        // success
+                        loginMessage.textContent = 'Google sign-in successful! Redirecting...';
+                        loginMessage.style.color = '#2ecc71';
+                        setTimeout(() => {
+                            window.location.href = './index.html';
+                        }, 1500);
+                    })
+                    .catch((error) => {
+                        loginMessage.textContent = error.message;
+                        loginMessage.style.color = '#e74c3c';
+                    });
+            });
+
+            // --- Facebook Sign-In (placeholder) ---
+            document.getElementById('facebookSignIn').addEventListener('click', function(e) {
+                e.preventDefault();
+                const provider = new firebase.auth.FacebookAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        loginMessage.textContent = 'Facebook sign-in successful! Redirecting...';
+                        loginMessage.style.color = '#2ecc71';
+                        setTimeout(() => {
+                            window.location.href = './index.html';
+                        }, 1500);
+                    })
+                    .catch((error) => {
+                        loginMessage.textContent = error.message;
+                        loginMessage.style.color = '#e74c3c';
+                    });
+            });
+
+            // --- Twitter Sign-In (placeholder) ---
+            document.getElementById('twitterSignIn').addEventListener('click', function(e) {
+                e.preventDefault();
+                const provider = new firebase.auth.TwitterAuthProvider();
+                auth.signInWithPopup(provider)
+                    .then((result) => {
+                        loginMessage.textContent = 'Twitter sign-in successful! Redirecting...';
+                        loginMessage.style.color = '#2ecc71';
+                        setTimeout(() => {
+                            window.location.href = './index.html';
+                        }, 1500);
+                    })
+                    .catch((error) => {
+                        loginMessage.textContent = error.message;
+                        loginMessage.style.color = '#e74c3c';
+                    });
+            });
+
+            // Check auth state (optional)
+            auth.onAuthStateChanged((user) => {
+                if (user) {
+                    // user is signed in, we could redirect but we let the login flow handle it
+                }
+            });
+
+        });
+    </script>
 
 </body>
 
