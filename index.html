@@ -3,13 +3,13 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="description" content="Anime Template">
-    <meta name="keywords" content="Anime, unica, creative, html">
+    <meta name="description" content="StreamingHub - Anime & Movies">
+    <meta name="keywords" content="Anime, streaming, movies, entertainment">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Anime | Home</title>
+    <title>StreamingHub | Home</title>
 
-    <!-- Google Font -->
+    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
 
@@ -28,17 +28,74 @@
     <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
 
     <style>
-        /* User menu styles */
+        /* ========== ROOT VARIABLES ========== */
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --bg-dark: #0b0c2a;
+            --text-light: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.7);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ========== GLOBAL RESETS ========== */
+        * {
+            box-sizing: border-box;
+        }
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Mulish', sans-serif;
+            overflow-x: hidden;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        a {
+            color: var(--text-light);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--primary);
+        }
+
+        /* ========== HEADER & USER MENU ========== */
+        .header {
+            background: rgba(11, 12, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        .header__right {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+        .header__right .search-switch {
+            color: var(--text-light);
+            font-size: 20px;
+            padding: 6px;
+        }
         .user-menu {
             display: flex;
             align-items: center;
-            gap: 12px;
+            gap: 10px;
+            flex-wrap: wrap;
         }
         .user-menu .user-avatar {
-            width: 36px;
-            height: 36px;
+            width: 38px;
+            height: 38px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
             display: flex;
             align-items: center;
             justify-content: center;
@@ -47,11 +104,11 @@
             font-size: 16px;
             text-transform: uppercase;
             flex-shrink: 0;
+            overflow: hidden;
         }
         .user-menu .user-avatar img {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
+            width: 100%;
+            height: 100%;
             object-fit: cover;
         }
         .user-menu .user-info {
@@ -61,8 +118,8 @@
         }
         .user-menu .user-name {
             font-size: 14px;
-            color: #fff;
-            font-weight: 500;
+            font-weight: 600;
+            color: var(--text-light);
             max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -70,52 +127,326 @@
         }
         .user-menu .user-email {
             font-size: 11px;
-            color: rgba(255,255,255,0.6);
+            color: var(--text-muted);
             max-width: 100px;
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
         }
         .user-menu .logout-btn {
-            background: rgba(255,255,255,0.15);
-            border: 1px solid rgba(255,255,255,0.2);
-            color: #fff;
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            color: var(--text-light);
             padding: 5px 14px;
             border-radius: 20px;
             cursor: pointer;
             font-size: 12px;
-            transition: all 0.3s;
             font-weight: 500;
+            transition: var(--transition);
         }
         .user-menu .logout-btn:hover {
-            background: #e74c3c;
-            border-color: #e74c3c;
-        }
-        .header__right {
-            display: flex;
-            align-items: center;
-            justify-content: flex-end;
-            gap: 15px;
+            background: var(--primary);
+            border-color: var(--primary);
         }
         .header__right .login-link {
             color: #fff;
             font-size: 13px;
             padding: 6px 18px;
-            background: #e74c3c;
+            background: var(--primary);
             border-radius: 20px;
-            transition: all 0.3s;
-            text-decoration: none;
             font-weight: 500;
+            transition: var(--transition);
         }
         .header__right .login-link:hover {
-            background: #c0392b;
+            background: var(--primary-dark);
             color: #fff;
         }
-        .header__right .search-switch {
-            color: #fff;
-            font-size: 18px;
+        /* Mobile nav adjustments */
+        .slicknav_menu {
+            background: transparent !important;
         }
-        /* Mobile responsive */
+        .slicknav_nav {
+            background: var(--bg-dark) !important;
+        }
+
+        /* ========== HERO / BANNER ========== */
+        .hero {
+            padding: 40px 0 20px;
+        }
+        .hero__items {
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            min-height: 380px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+        .hero__items::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(11, 12, 42, 0.85) 0%, transparent 70%);
+            z-index: 1;
+        }
+        .hero__text {
+            position: relative;
+            z-index: 2;
+            padding: 40px 30px;
+        }
+        .hero__text .label {
+            display: inline-block;
+            background: var(--primary);
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 12px;
+        }
+        .hero__text h2 {
+            font-size: clamp(24px, 4vw, 44px);
+            font-weight: 700;
+            line-height: 1.2;
+            margin-bottom: 12px;
+            font-family: 'Oswald', sans-serif;
+        }
+        .hero__text p {
+            font-size: clamp(14px, 1.2vw, 18px);
+            opacity: 0.85;
+            max-width: 500px;
+            margin-bottom: 20px;
+        }
+        .hero__text a {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            background: var(--primary);
+            padding: 10px 28px;
+            border-radius: 30px;
+            font-weight: 600;
+            font-size: 14px;
+            transition: var(--transition);
+        }
+        .hero__text a:hover {
+            background: var(--primary-dark);
+            transform: translateY(-2px);
+            color: #fff;
+        }
+
+        /* ========== SECTION TITLES ========== */
+        .section-title h4 {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(20px, 2.5vw, 28px);
+            font-weight: 600;
+            position: relative;
+            padding-left: 18px;
+        }
+        .section-title h4::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 4px;
+            height: 28px;
+            background: var(--primary);
+            border-radius: 4px;
+        }
+        .btn__all .primary-btn {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 20px;
+            border-radius: 30px;
+            font-size: 13px;
+            font-weight: 500;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn__all .primary-btn:hover {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+        }
+
+        /* ========== PRODUCT / ANIME CARDS ========== */
+        .product {
+            padding: 40px 0 60px;
+        }
+        .product__item {
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: var(--border-radius);
+            overflow: hidden;
+            transition: var(--transition);
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.04);
+            height: 100%;
+        }
+        .product__item:hover {
+            transform: translateY(-6px);
+            border-color: rgba(231, 76, 60, 0.3);
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4);
+        }
+        .product__item__pic {
+            height: 220px;
+            background-size: cover;
+            background-position: center;
+            position: relative;
+            border-radius: var(--border-radius) var(--border-radius) 0 0;
+        }
+        .product__item__pic .ep {
+            position: absolute;
+            top: 12px;
+            left: 12px;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+            backdrop-filter: blur(4px);
+        }
+        .product__item__pic .view,
+        .product__item__pic .comment {
+            position: absolute;
+            bottom: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            backdrop-filter: blur(4px);
+        }
+        .product__item__pic .view {
+            right: 12px;
+        }
+        .product__item__pic .comment {
+            right: 80px;
+        }
+        .product__item__text {
+            padding: 16px 16px 20px;
+        }
+        .product__item__text ul {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 8px;
+        }
+        .product__item__text ul li {
+            font-size: 11px;
+            background: rgba(231, 76, 60, 0.15);
+            color: var(--primary);
+            padding: 2px 12px;
+            border-radius: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .product__item__text h5 {
+            font-size: clamp(14px, 1.1vw, 17px);
+            font-weight: 600;
+            margin: 0;
+            font-family: 'Oswald', sans-serif;
+        }
+        .product__item__text h5 a {
+            color: var(--text-light);
+            transition: var(--transition);
+        }
+        .product__item__text h5 a:hover {
+            color: var(--primary);
+        }
+
+        /* ========== SIDEBAR ========== */
+        .product__sidebar__view__item {
+            background-size: cover;
+            background-position: center;
+            padding: 20px;
+            border-radius: var(--border-radius);
+            margin-bottom: 16px;
+            min-height: 140px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        .product__sidebar__view__item:hover {
+            transform: scale(1.02);
+            border-color: rgba(231, 76, 60, 0.3);
+        }
+        .product__sidebar__view__item .ep,
+        .product__sidebar__view__item .view {
+            font-size: 12px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 12px;
+            border-radius: 12px;
+            display: inline-block;
+            backdrop-filter: blur(4px);
+            width: fit-content;
+        }
+        .product__sidebar__view__item h5 {
+            font-size: 15px;
+            font-weight: 600;
+            margin: 8px 0 0;
+            font-family: 'Oswald', sans-serif;
+        }
+        .product__sidebar__view__item h5 a {
+            color: #fff;
+            transition: var(--transition);
+        }
+        .product__sidebar__view__item h5 a:hover {
+            color: var(--primary);
+        }
+        .filter__controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            list-style: none;
+            padding: 0;
+            margin: 0 0 16px;
+        }
+        .filter__controls li {
+            cursor: pointer;
+            padding: 4px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+            background: rgba(255, 255, 255, 0.05);
+            transition: var(--transition);
+        }
+        .filter__controls li.active,
+        .filter__controls li:hover {
+            background: var(--primary);
+            color: #fff;
+        }
+
+        /* ========== YOUTUBE EMBED PLAYER ========== */
+        .video-player-section {
+            padding: 20px 0 40px;
+        }
+        .video-wrapper {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+        .video-wrapper iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        /* ========== RESPONSIVE TWEAKS ========== */
         @media (max-width: 991px) {
             .user-menu .user-email {
                 display: none;
@@ -124,557 +455,252 @@
                 max-width: 60px;
                 font-size: 13px;
             }
+            .hero__items {
+                min-height: 280px;
+            }
+            .hero__text {
+                padding: 30px 20px;
+            }
+            .product__item__pic {
+                height: 180px;
+            }
+        }
+        @media (max-width: 767px) {
+            .header__right {
+                gap: 6px;
+            }
+            .user-menu .user-info {
+                display: none;
+            }
+            .user-menu .logout-btn {
+                padding: 4px 12px;
+                font-size: 11px;
+            }
+            .hero__items {
+                min-height: 220px;
+            }
+            .hero__text h2 {
+                font-size: 22px;
+            }
+            .hero__text p {
+                font-size: 13px;
+            }
+            .hero__text a {
+                padding: 8px 20px;
+                font-size: 13px;
+            }
+            .product__item__pic {
+                height: 160px;
+            }
+            .section-title h4 {
+                font-size: 18px;
+            }
+        }
+        @media (max-width: 480px) {
+            .hero__items {
+                min-height: 180px;
+                border-radius: 8px;
+            }
+            .hero__text {
+                padding: 20px 16px;
+            }
+            .hero__text h2 {
+                font-size: 18px;
+            }
+            .product__item__pic {
+                height: 140px;
+            }
+            .product__item__text h5 {
+                font-size: 14px;
+            }
+        }
+
+        /* ========== UTILITY ========== */
+        .spad {
+            padding: 40px 0;
+        }
+        .set-bg {
+            background-size: cover;
+            background-position: center;
+        }
+        .text-center {
+            text-align: center;
+        }
+        .mb-3 {
+            margin-bottom: 16px;
+        }
+        .mt-3 {
+            margin-top: 16px;
         }
     </style>
 </head>
 
 <body>
-    <!-- Page Preloder -->
+
+    <!-- ====== PRELOADER ====== -->
     <div id="preloder">
         <div class="loader"></div>
     </div>
 
-    <!-- Header Section Begin -->
+    <!-- ====== HEADER ====== -->
     <header class="header">
         <div class="container">
-            <div class="row">
-                <div class="col-lg-2">
+            <div class="row align-items-center">
+                <div class="col-6 col-lg-2">
                     <div class="header__logo">
                         <a href="./index.html">
-                            <img src="img/logo.png" alt="">
+                            <img src="img/logo.png" alt="StreamingHub" style="max-height:42px; width:auto;">
                         </a>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-8 d-none d-lg-block">
                     <div class="header__nav">
-                        <nav class="header__menu mobile-menu">
+                        <nav class="header__menu">
                             <ul>
-                                <li class="active"><a href="./index.html">Homepage</a></li>
-                                <li><a href="./categories.html">Categories <span class="arrow_carrot-down"></span></a>
+                                <li class="active"><a href="./index.html">Home</a></li>
+                                <li>
+                                    <a href="./categories.html">Categories <span class="arrow_carrot-down"></span></a>
                                     <ul class="dropdown">
-                                        <li><a href="./categories.html">Categories</a></li>
+                                        <li><a href="./categories.html">All Categories</a></li>
                                         <li><a href="./anime-details.html">Anime Details</a></li>
-                                        <li><a href="./anime-watching.html">Anime Watching</a></li>
-                                        <li><a href="./blog-details.html">Blog Details</a></li>
+                                        <li><a href="./anime-watching.html">Watch</a></li>
+                                        <li><a href="./blog-details.html">Blog</a></li>
                                         <li><a href="./signup.html">Sign Up</a></li>
                                         <li><a href="./login.html">Login</a></li>
                                     </ul>
                                 </li>
-                                <li><a href="./blog.html">Our Blog</a></li>
-                                <li><a href="#">Contacts</a></li>
+                                <li><a href="./blog.html">Blog</a></li>
+                                <li><a href="#">Contact</a></li>
                             </ul>
                         </nav>
                     </div>
                 </div>
-                <div class="col-lg-2">
+                <div class="col-6 col-lg-2">
                     <div class="header__right">
                         <a href="#" class="search-switch"><span class="icon_search"></span></a>
-                        <!-- User menu container -->
                         <div id="userMenuContainer"></div>
                     </div>
                 </div>
             </div>
-            <div id="mobile-menu-wrap"></div>
+            <div id="mobile-menu-wrap" class="d-lg-none"></div>
         </div>
     </header>
-    <!-- Header End -->
 
-    <!-- Hero Section Begin -->
-    <section class="hero">
+    <!-- ====== HERO / BANNER SECTION (Editable via Admin) ====== -->
+    <section class="hero" id="heroSection">
         <div class="container">
-            <div class="hero__slider owl-carousel">
-                <div class="hero__items set-bg" data-setbg="img/hero/hero-1.jpg">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="hero__text">
-                                <div class="label">Adventure</div>
-                                <h2>Fate / Stay Night: Unlimited Blade Works</h2>
-                                <p>After 30 days of travel across the world...</p>
-                                <a href="#"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
-                            </div>
-                        </div>
+            <div class="hero__slider owl-carousel" id="heroSlider">
+                <!-- Slides will be injected by JS (or static fallback) -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== YOUTUBE EMBED PLAYER (Editable via Admin) ====== -->
+    <section class="video-player-section" id="videoPlayerSection">
+        <div class="container">
+            <div class="row">
+                <div class="col-12">
+                    <div class="section-title">
+                        <h4>Featured Video</h4>
                     </div>
-                </div>
-                <div class="hero__items set-bg" data-setbg="img/hero/hero-1.jpg">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="hero__text">
-                                <div class="label">Adventure</div>
-                                <h2>Fate / Stay Night: Unlimited Blade Works</h2>
-                                <p>After 30 days of travel across the world...</p>
-                                <a href="#"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="hero__items set-bg" data-setbg="img/hero/hero-1.jpg">
-                    <div class="row">
-                        <div class="col-lg-6">
-                            <div class="hero__text">
-                                <div class="label">Adventure</div>
-                                <h2>Fate / Stay Night: Unlimited Blade Works</h2>
-                                <p>After 30 days of travel across the world...</p>
-                                <a href="#"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
-                            </div>
-                        </div>
+                    <div class="video-wrapper" id="videoWrapper">
+                        <!-- Default fallback video; admin can update via localStorage -->
+                        <iframe id="featuredVideo"
+                            src="https://www.youtube.com/embed/dQw4w9WgXcQ"
+                            title="Featured Video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowfullscreen>
+                        </iframe>
                     </div>
                 </div>
             </div>
         </div>
     </section>
-    <!-- Hero Section End -->
 
-    <!-- Product Section Begin -->
-    <section class="product spad">
+    <!-- ====== TRENDING NOW (Editable via Admin) ====== -->
+    <section class="product spad" id="trendingSection">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-7 col-sm-6">
+                    <div class="section-title">
+                        <h4>Trending Now</h4>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6 text-end">
+                    <div class="btn__all">
+                        <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="trendingGrid">
+                <!-- Cards injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== POPULAR SHOWS ====== -->
+    <section class="product spad" id="popularSection">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-7 col-sm-6">
+                    <div class="section-title">
+                        <h4>Popular Shows</h4>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6 text-end">
+                    <div class="btn__all">
+                        <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="popularGrid">
+                <!-- Cards injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== RECENTLY ADDED ====== -->
+    <section class="product spad" id="recentSection">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-8 col-md-7 col-sm-6">
+                    <div class="section-title">
+                        <h4>Recently Added</h4>
+                    </div>
+                </div>
+                <div class="col-lg-4 col-md-5 col-sm-6 text-end">
+                    <div class="btn__all">
+                        <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
+                    </div>
+                </div>
+            </div>
+            <div class="row" id="recentGrid">
+                <!-- Cards injected by JS -->
+            </div>
+        </div>
+    </section>
+
+    <!-- ====== SIDEBAR + TOP VIEWS (Editable via Admin) ====== -->
+    <section class="product spad" id="sidebarSection">
         <div class="container">
             <div class="row">
                 <div class="col-lg-8">
-                    <div class="trending__product">
-                        <div class="row">
-                            <div class="col-lg-8 col-md-8 col-sm-8">
-                                <div class="section-title">
-                                    <h4>Trending Now</h4>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-4">
-                                <div class="btn__all">
-                                    <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-1.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-2.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Gintama Movie 2: Kanketsu-hen - Yorozuya yo Eien</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-3.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Shingeki no Kyojin Season 3 Part 2</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-4.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Fullmetal Alchemist: Brotherhood</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-5.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Shiratorizawa Gakuen Koukou</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/trending/trend-6.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Code Geass: Hangyaku no Lelouch R2</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="popular__product">
-                        <div class="row">
-                            <div class="col-lg-8 col-md-8 col-sm-8">
-                                <div class="section-title">
-                                    <h4>Popular Shows</h4>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-4">
-                                <div class="btn__all">
-                                    <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-1.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Sen to Chihiro no Kamikakushi</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-2.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Kizumonogatari III: Reiket su-hen</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-3.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Shirogane Tamashii hen Kouhan sen</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-4.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Rurouni Kenshin: Meiji Kenkaku Romantan</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-5.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Mushishi Zoku Shou 2nd Season</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/popular/popular-6.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Monogatari Series: Second Season</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="recent__product">
-                        <div class="row">
-                            <div class="col-lg-8 col-md-8 col-sm-8">
-                                <div class="section-title">
-                                    <h4>Recently Added Shows</h4>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-4 col-sm-4">
-                                <div class="btn__all">
-                                    <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-1.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Great Teacher Onizuka</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-2.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Fate/stay night Movie: Heaven's Feel - II. Lost</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-3.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Mushishi Zoku Shou: Suzu no Shizuku</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-4.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Fate/Zero 2nd Season</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-5.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Kizumonogatari II: Nekket su-hen</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/recent/recent-6.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+                    <!-- Live Action (placeholder, dynamic) -->
                     <div class="live__product">
                         <div class="row">
-                            <div class="col-lg-8 col-md-8 col-sm-8">
+                            <div class="col-lg-8 col-md-7 col-sm-6">
                                 <div class="section-title">
                                     <h4>Live Action</h4>
                                 </div>
                             </div>
-                            <div class="col-lg-4 col-md-4 col-sm-4">
+                            <div class="col-lg-4 col-md-5 col-sm-6 text-end">
                                 <div class="btn__all">
                                     <a href="#" class="primary-btn">View All <span class="arrow_right"></span></a>
                                 </div>
                             </div>
                         </div>
-                        <div class="row">
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-1.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Shouwa Genroku Rakugo Shinjuu</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-2.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Mushishi Zoku Shou 2nd Season</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-3.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Mushishi Zoku Shou: Suzu no Shizuku</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-4.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-5.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Fate/stay night Movie: Heaven's Feel - II. Lost</a></h5>
-                                    </div>
-                                </div>
-                            </div>
-                            <div class="col-lg-4 col-md-6 col-sm-6">
-                                <div class="product__item">
-                                    <div class="product__item__pic set-bg" data-setbg="img/live/live-6.jpg">
-                                        <div class="ep">18 / 18</div>
-                                        <div class="comment"><i class="fa fa-comments"></i> 11</div>
-                                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                    </div>
-                                    <div class="product__item__text">
-                                        <ul>
-                                            <li>Active</li>
-                                            <li>Movie</li>
-                                        </ul>
-                                        <h5><a href="#">Kizumonogatari II: Nekketsu-hen</a></h5>
-                                    </div>
-                                </div>
-                            </div>
+                        <div class="row" id="liveGrid">
+                            <!-- Injected by JS -->
                         </div>
                     </div>
                 </div>
@@ -684,247 +710,426 @@
                             <div class="section-title">
                                 <h5>Top Views</h5>
                             </div>
-                            <ul class="filter__controls">
-                                <li class="active" data-filter="*">Day</li>
+                            <ul class="filter__controls" id="filterControls">
+                                <li class="active" data-filter="*">All</li>
                                 <li data-filter=".week">Week</li>
                                 <li data-filter=".month">Month</li>
-                                <li data-filter=".years">Years</li>
                             </ul>
-                            <div class="filter__gallery">
-                                <div class="product__sidebar__view__item set-bg mix day years"
-                                data-setbg="img/sidebar/tv-1.jpg">
-                                <div class="ep">18 / ?</div>
-                                <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                                <h5><a href="#">Boruto: Naruto next generations</a></h5>
+                            <div class="filter__gallery" id="topViewsGrid">
+                                <!-- Injected by JS -->
                             </div>
-                            <div class="product__sidebar__view__item set-bg mix month week"
-                            data-setbg="img/sidebar/tv-2.jpg">
-                            <div class="ep">18 / ?</div>
-                            <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                            <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
                         </div>
-                        <div class="product__sidebar__view__item set-bg mix week years"
-                        data-setbg="img/sidebar/tv-3.jpg">
-                        <div class="ep">18 / ?</div>
-                        <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                        <h5><a href="#">Sword art online alicization war of underworld</a></h5>
+                        <div class="product__sidebar__comment mt-4">
+                            <div class="section-title">
+                                <h5>Latest Comments</h5>
+                            </div>
+                            <div id="commentsGrid">
+                                <!-- Injected by JS -->
+                            </div>
+                        </div>
                     </div>
-                    <div class="product__sidebar__view__item set-bg mix years month"
-                    data-setbg="img/sidebar/tv-4.jpg">
-                    <div class="ep">18 / ?</div>
-                    <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                    <h5><a href="#">Fate/stay night: Heaven's Feel I. presage flower</a></h5>
-                </div>
-                <div class="product__sidebar__view__item set-bg mix day"
-                data-setbg="img/sidebar/tv-5.jpg">
-                <div class="ep">18 / ?</div>
-                <div class="view"><i class="fa fa-eye"></i> 9141</div>
-                <h5><a href="#">Fate stay night unlimited blade works</a></h5>
-            </div>
-        </div>
-    </div>
-    <div class="product__sidebar__comment">
-        <div class="section-title">
-            <h5>New Comment</h5>
-        </div>
-        <div class="product__sidebar__comment__item">
-            <div class="product__sidebar__comment__item__pic">
-                <img src="img/sidebar/comment-1.jpg" alt="">
-            </div>
-            <div class="product__sidebar__comment__item__text">
-                <ul>
-                    <li>Active</li>
-                    <li>Movie</li>
-                </ul>
-                <h5><a href="#">The Seven Deadly Sins: Wrath of the Gods</a></h5>
-                <span><i class="fa fa-eye"></i> 19.141 Viewes</span>
-            </div>
-        </div>
-        <div class="product__sidebar__comment__item">
-            <div class="product__sidebar__comment__item__pic">
-                <img src="img/sidebar/comment-2.jpg" alt="">
-            </div>
-            <div class="product__sidebar__comment__item__text">
-                <ul>
-                    <li>Active</li>
-                    <li>Movie</li>
-                </ul>
-                <h5><a href="#">Shirogane Tamashii hen Kouhan sen</a></h5>
-                <span><i class="fa fa-eye"></i> 19.141 Viewes</span>
-            </div>
-        </div>
-        <div class="product__sidebar__comment__item">
-            <div class="product__sidebar__comment__item__pic">
-                <img src="img/sidebar/comment-3.jpg" alt="">
-            </div>
-            <div class="product__sidebar__comment__item__text">
-                <ul>
-                    <li>Active</li>
-                    <li>Movie</li>
-                </ul>
-                <h5><a href="#">Kizumonogatari III: Reiket su-hen</a></h5>
-                <span><i class="fa fa-eye"></i> 19.141 Viewes</span>
-            </div>
-        </div>
-        <div class="product__sidebar__comment__item">
-            <div class="product__sidebar__comment__item__pic">
-                <img src="img/sidebar/comment-4.jpg" alt="">
-            </div>
-            <div class="product__sidebar__comment__item__text">
-                <ul>
-                    <li>Active</li>
-                    <li>Movie</li>
-                </ul>
-                <h5><a href="#">Monogatari Series: Second Season</a></h5>
-                <span><i class="fa fa-eye"></i> 19.141 Viewes</span>
-            </div>
-        </div>
-    </div>
-</div>
-</div>
-</div>
-</div>
-</section>
-<!-- Product Section End -->
-
-<!-- Footer Section Begin -->
-<footer class="footer">
-    <div class="page-up">
-        <a href="#" id="scrollToTopButton"><span class="arrow_carrot-up"></span></a>
-    </div>
-    <div class="container">
-        <div class="row">
-            <div class="col-lg-3">
-                <div class="footer__logo">
-                    <a href="./index.html"><img src="img/logo.png" alt=""></a>
                 </div>
             </div>
-            <div class="col-lg-6">
-                <div class="footer__nav">
-                    <ul>
-                        <li class="active"><a href="./index.html">Homepage</a></li>
-                        <li><a href="./categories.html">Categories</a></li>
-                        <li><a href="./blog.html">Our Blog</a></li>
-                        <li><a href="#">Contacts</a></li>
-                    </ul>
-                </div>
-            </div>
-            <div class="col-lg-3">
-                <p>
-                    Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This is made with <i class="fa fa-heart" aria-hidden="true"></i> by <a href="https://t.me/aura_sajid" target="_blank">SAJID</a>
-                </p>
-            </div>
         </div>
-    </div>
-</footer>
-<!-- Footer Section End -->
+    </section>
 
-<!-- Search model Begin -->
-<div class="search-model">
-    <div class="h-100 d-flex align-items-center justify-content-center">
-        <div class="search-close-switch"><i class="icon_close"></i></div>
-        <form class="search-model-form">
-            <input type="text" id="search-input" placeholder="Search here.....">
-        </form>
-    </div>
-</div>
-<!-- Search model end -->
-
-<!-- Js Plugins -->
-<script src="js/jquery-3.3.1.min.js"></script>
-<script src="js/bootstrap.min.js"></script>
-<script src="js/player.js"></script>
-<script src="js/jquery.nice-select.min.js"></script>
-<script src="js/mixitup.min.js"></script>
-<script src="js/jquery.slicknav.js"></script>
-<script src="js/owl.carousel.min.js"></script>
-<script src="js/main.js"></script>
-
-<!-- Firebase Authentication -->
-<script>
-    // Firebase configuration
-    const firebaseConfig = {
-        apiKey: "AIzaSyDqyJr6gMzwM0HJNeU_BP5EbG5Nxyhpaqw",
-        authDomain: "streaming-hub-67.firebaseapp.com",
-        projectId: "streaming-hub-67",
-        storageBucket: "streaming-hub-67.firebasestorage.app",
-        messagingSenderId: "99843602028",
-        appId: "1:99843602028:web:0a5a52606c2919498c4a49",
-        measurementId: "G-T3S9SEEBD7"
-    };
-
-    // Initialize Firebase
-    firebase.initializeApp(firebaseConfig);
-    const auth = firebase.auth();
-
-    // Set persistence to LOCAL so user stays logged in
-    auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
-        .then(() => {
-            console.log('Auth persistence set to LOCAL');
-        })
-        .catch((error) => {
-            console.error('Error setting persistence:', error);
-        });
-
-    // Get user menu container
-    const userMenuContainer = document.getElementById('userMenuContainer');
-
-    // Function to render user menu
-    function renderUserMenu(user) {
-        if (user) {
-            // User is logged in - show user menu
-            const displayName = user.displayName || user.email || 'User';
-            const email = user.email || '';
-            const photoURL = user.photoURL || '';
-            const initial = displayName.charAt(0).toUpperCase();
-
-            userMenuContainer.innerHTML = `
-                <div class="user-menu">
-                    <div class="user-avatar">
-                        ${photoURL ? `<img src="${photoURL}" alt="${displayName}">` : initial}
+    <!-- ====== FOOTER ====== -->
+    <footer class="footer">
+        <div class="page-up">
+            <a href="#" id="scrollToTopButton"><span class="arrow_carrot-up"></span></a>
+        </div>
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-lg-3 col-md-4">
+                    <div class="footer__logo">
+                        <a href="./index.html"><img src="img/logo.png" alt="StreamingHub" style="max-height:36px;"></a>
                     </div>
-                    <div class="user-info">
-                        <span class="user-name">${displayName}</span>
-                        <span class="user-email">${email}</span>
-                    </div>
-                    <button class="logout-btn" id="logoutBtn">Logout</button>
                 </div>
-            `;
+                <div class="col-lg-6 col-md-4">
+                    <div class="footer__nav">
+                        <ul class="d-flex justify-content-center gap-3 flex-wrap list-unstyled">
+                            <li><a href="./index.html">Home</a></li>
+                            <li><a href="./categories.html">Categories</a></li>
+                            <li><a href="./blog.html">Blog</a></li>
+                            <li><a href="#">Contact</a></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-4 text-md-end text-center">
+                    <p class="mb-0" style="font-size:13px; color:var(--text-muted);">
+                        &copy; <script>document.write(new Date().getFullYear());</script> Made with <i class="fa fa-heart" style="color:var(--primary);"></i> by <a href="https://t.me/aura_sajid" target="_blank" style="color:var(--primary);">SAJID</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
-            // Add logout functionality
-            document.getElementById('logoutBtn').addEventListener('click', function(e) {
-                e.preventDefault();
-                auth.signOut().then(() => {
-                    console.log('User signed out');
-                    // Page will auto-update via onAuthStateChanged
-                }).catch((error) => {
-                    console.error('Logout error:', error);
+    <!-- ====== SEARCH MODAL ====== -->
+    <div class="search-model">
+        <div class="h-100 d-flex align-items-center justify-content-center">
+            <div class="search-close-switch"><i class="icon_close"></i></div>
+            <form class="search-model-form">
+                <input type="text" id="search-input" placeholder="Search anime, movies..." autofocus>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== SCRIPTS ====== -->
+    <script src="js/jquery-3.3.1.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/player.js"></script>
+    <script src="js/jquery.nice-select.min.js"></script>
+    <script src="js/mixitup.min.js"></script>
+    <script src="js/jquery.slicknav.js"></script>
+    <script src="js/owl.carousel.min.js"></script>
+    <script src="js/main.js"></script>
+
+    <!-- ====== FIREBASE & DYNAMIC CONTENT ====== -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ==========================================
+            // FIREBASE CONFIG
+            // ==========================================
+            const firebaseConfig = {
+                apiKey: "AIzaSyDqyJr6gMzwM0HJNeU_BP5EbG5Nxyhpaqw",
+                authDomain: "streaming-hub-67.firebaseapp.com",
+                projectId: "streaming-hub-67",
+                storageBucket: "streaming-hub-67.firebasestorage.app",
+                messagingSenderId: "99843602028",
+                appId: "1:99843602028:web:0a5a52606c2919498c4a49",
+                measurementId: "G-T3S9SEEBD7"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const auth = firebase.auth();
+            auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+                .catch(err => console.warn('Persistence error:', err));
+
+            // ==========================================
+            // DEFAULT DATA (fallback if admin not set)
+            // ==========================================
+            const DEFAULT_DATA = {
+                hero: [
+                    { title: 'Fate / Stay Night: Unlimited Blade Works', label: 'Adventure',
+                        desc: 'After 30 days of travel across the world...', image: 'img/hero/hero-1.jpg',
+                        link: '#' },
+                    { title: 'Attack on Titan Final Season', label: 'Action',
+                        desc: 'The epic conclusion to the hit series.', image: 'img/hero/hero-2.jpg',
+                    link: '#' },
+                    { title: 'Demon Slayer: Mugen Train', label: 'Movie',
+                        desc: 'The highest-grossing anime film of all time.', image: 'img/hero/hero-3.jpg',
+                    link: '#' }
+                ],
+                trending: [
+                    { title: 'The Seven Deadly Sins: Wrath of the Gods', image: 'img/trending/trend-1.jpg',
+                        ep: '18 / 18', views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Gintama Movie 2: Kanketsu-hen', image: 'img/trending/trend-2.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Shingeki no Kyojin Season 3 Part 2', image: 'img/trending/trend-3.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Fullmetal Alchemist: Brotherhood', image: 'img/trending/trend-4.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Shiratorizawa Gakuen Koukou', image: 'img/trending/trend-5.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Code Geass: Hangyaku no Lelouch R2', image: 'img/trending/trend-6.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] }
+                ],
+                popular: [
+                    { title: 'Sen to Chihiro no Kamikakushi', image: 'img/popular/popular-1.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Kizumonogatari III: Reiket su-hen', image: 'img/popular/popular-2.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Shirogane Tamashii hen Kouhan sen', image: 'img/popular/popular-3.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Rurouni Kenshin: Meiji Kenkaku', image: 'img/popular/popular-4.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Mushishi Zoku Shou 2nd Season', image: 'img/popular/popular-5.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Monogatari Series: Second Season', image: 'img/popular/popular-6.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] }
+                ],
+                recent: [
+                    { title: 'Great Teacher Onizuka', image: 'img/recent/recent-1.jpg', ep: '18 / 18', views: 9141,
+                        comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Fate/stay night: Heaven\'s Feel II', image: 'img/recent/recent-2.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Mushishi Zoku Shou: Suzu no Shizuku', image: 'img/recent/recent-3.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Fate/Zero 2nd Season', image: 'img/recent/recent-4.jpg', ep: '18 / 18', views: 9141,
+                        comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Kizumonogatari II: Nekket su-hen', image: 'img/recent/recent-5.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'The Seven Deadly Sins: Wrath', image: 'img/recent/recent-6.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] }
+                ],
+                topViews: [
+                    { title: 'Boruto: Naruto next generations', image: 'img/sidebar/tv-1.jpg', ep: '18 / ?',
+                        views: 9141, filter: 'day years' },
+                    { title: 'The Seven Deadly Sins: Wrath', image: 'img/sidebar/tv-2.jpg', ep: '18 / ?',
+                        views: 9141, filter: 'month week' },
+                    { title: 'Sword Art Online: Alicization', image: 'img/sidebar/tv-3.jpg', ep: '18 / ?',
+                        views: 9141, filter: 'week years' },
+                    { title: 'Fate/stay night: Heaven\'s Feel I', image: 'img/sidebar/tv-4.jpg', ep: '18 / ?',
+                        views: 9141, filter: 'years month' },
+                    { title: 'Fate stay night UBW', image: 'img/sidebar/tv-5.jpg', ep: '18 / ?', views: 9141,
+                        filter: 'day' }
+                ],
+                live: [
+                    { title: 'Shouwa Genroku Rakugo Shinjuu', image: 'img/live/live-1.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Mushishi Zoku Shou 2nd Season', image: 'img/live/live-2.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Mushishi Zoku Shou: Suzu', image: 'img/live/live-3.jpg', ep: '18 / 18', views: 9141,
+                        comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'The Seven Deadly Sins: Wrath', image: 'img/live/live-4.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Fate/stay night: Heaven\'s Feel II', image: 'img/live/live-5.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] },
+                    { title: 'Kizumonogatari II: Nekketsu', image: 'img/live/live-6.jpg', ep: '18 / 18',
+                        views: 9141, comments: 11, tags: ['Active', 'Movie'] }
+                ],
+                comments: [
+                    { user: 'AnimeFan42', text: 'Absolutely loved this episode!', time: '2 hours ago' },
+                    { user: 'OtakuKing', text: 'Best anime of the season hands down.', time: '5 hours ago' },
+                    { user: 'WeebMaster', text: 'Can\'t wait for the next season!', time: '1 day ago' },
+                    { user: 'SakuraLover', text: 'The animation quality is insane.', time: '2 days ago' }
+                ],
+                videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ'
+            };
+
+            // ==========================================
+            // HELPERS
+            // ==========================================
+            function getData(key) {
+                try {
+                    const stored = localStorage.getItem('streaminghub_' + key);
+                    if (stored) return JSON.parse(stored);
+                } catch (e) { /* ignore */ }
+                return DEFAULT_DATA[key] || [];
+            }
+
+            function setData(key, value) {
+                localStorage.setItem('streaminghub_' + key, JSON.stringify(value));
+            }
+
+            function renderCard(item, index) {
+                const tags = item.tags ? item.tags.map(t => `<li>${t}</li>`).join('') : '';
+                return `
+                    <div class="col-lg-4 col-md-6 col-sm-6">
+                        <div class="product__item">
+                            <div class="product__item__pic set-bg" data-setbg="${item.image}">
+                                <div class="ep">${item.ep || '0 / 0'}</div>
+                                <div class="comment"><i class="fa fa-comments"></i> ${item.comments || 0}</div>
+                                <div class="view"><i class="fa fa-eye"></i> ${item.views || 0}</div>
+                            </div>
+                            <div class="product__item__text">
+                                <ul>${tags}</ul>
+                                <h5><a href="#">${item.title}</a></h5>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            function renderTopView(item) {
+                return `
+                    <div class="product__sidebar__view__item set-bg mix ${item.filter || ''}" data-setbg="${item.image}">
+                        <div class="ep">${item.ep || '0 / 0'}</div>
+                        <div class="view"><i class="fa fa-eye"></i> ${item.views || 0}</div>
+                        <h5><a href="#">${item.title}</a></h5>
+                    </div>
+                `;
+            }
+
+            function renderComment(item) {
+                return `
+                    <div class="product__sidebar__comment__item d-flex align-items-start gap-3 mb-3">
+                        <div class="product__sidebar__comment__item__pic flex-shrink-0">
+                            <img src="img/sidebar/comment-${Math.floor(Math.random() * 4) + 1}.jpg" alt="avatar" style="width:44px;height:44px;border-radius:50%;object-fit:cover;">
+                        </div>
+                        <div class="product__sidebar__comment__item__text">
+                            <h6 style="font-size:14px;font-weight:600;margin:0;">${item.user}</h6>
+                            <p style="font-size:13px;color:var(--text-muted);margin:2px 0;">${item.text}</p>
+                            <span style="font-size:11px;color:var(--text-muted);"><i class="fa fa-clock-o"></i> ${item.time}</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // ==========================================
+            // RENDER FUNCTIONS
+            // ==========================================
+            function renderHero() {
+                const slides = getData('hero');
+                const container = document.getElementById('heroSlider');
+                if (!container) return;
+                container.innerHTML = slides.map((slide, i) => `
+                    <div class="hero__items set-bg" data-setbg="${slide.image}">
+                        <div class="row">
+                            <div class="col-lg-6">
+                                <div class="hero__text">
+                                    <div class="label">${slide.label || 'Featured'}</div>
+                                    <h2>${slide.title}</h2>
+                                    <p>${slide.desc || ''}</p>
+                                    <a href="${slide.link || '#'}"><span>Watch Now</span> <i class="fa fa-angle-right"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `).join('');
+                // Re-init owl if available
+                if (typeof $ !== 'undefined' && $.fn.owlCarousel) {
+                    try {
+                        $(container).owlCarousel('destroy');
+                        $(container).owlCarousel({
+                            items: 1,
+                            loop: true,
+                            nav: true,
+                            dots: true,
+                            autoplay: true,
+                            autoplayTimeout: 6000,
+                            animateOut: 'fadeOut'
+                        });
+                    } catch (e) { /* ignore */ }
+                }
+            }
+
+            function renderGrid(id, key) {
+                const container = document.getElementById(id);
+                if (!container) return;
+                const items = getData(key);
+                container.innerHTML = items.map(renderCard).join('');
+                // Re-apply set-bg
+                container.querySelectorAll('.set-bg').forEach(el => {
+                    const bg = el.getAttribute('data-setbg');
+                    if (bg) el.style.backgroundImage = `url(${bg})`;
                 });
-            });
+            }
 
-        } else {
-            // User is logged out - show login link
-            userMenuContainer.innerHTML = `
-                <a href="./login.html" class="login-link">Login</a>
-            `;
-        }
-    }
+            function renderTopViews() {
+                const container = document.getElementById('topViewsGrid');
+                if (!container) return;
+                const items = getData('topViews');
+                container.innerHTML = items.map(renderTopView).join('');
+                container.querySelectorAll('.set-bg').forEach(el => {
+                    const bg = el.getAttribute('data-setbg');
+                    if (bg) el.style.backgroundImage = `url(${bg})`;
+                });
+                // Re-init mixitup
+                if (typeof $ !== 'undefined' && $.fn.mixitup) {
+                    try {
+                        if (container.mixitup) container.mixitup('destroy');
+                        $(container).mixitup({
+                            selectors: {
+                                target: '.product__sidebar__view__item'
+                            },
+                            animation: {
+                                duration: 300
+                            }
+                        });
+                    } catch (e) { /* ignore */ }
+                }
+            }
 
-    // Listen for auth state changes
-    auth.onAuthStateChanged((user) => {
-        console.log('Auth state changed:', user ? user.email : 'No user');
-        renderUserMenu(user);
-        
-        // If user is logged in, you can optionally show a welcome message or update UI
-        if (user) {
-            console.log('Welcome, ' + (user.displayName || user.email));
-        }
-    });
+            function renderComments() {
+                const container = document.getElementById('commentsGrid');
+                if (!container) return;
+                const items = getData('comments');
+                container.innerHTML = items.map(renderComment).join('');
+            }
 
-    // Handle initial load - check if user is already logged in
-    // The onAuthStateChanged will handle this
-    console.log('Index page loaded with Firebase auth');
-</script>
+            function renderVideo() {
+                const videoUrl = getData('videoUrl') || DEFAULT_DATA.videoUrl;
+                const iframe = document.getElementById('featuredVideo');
+                if (iframe) {
+                    // Ensure it's a valid embed URL
+                    let url = videoUrl;
+                    if (url.includes('watch?v=')) {
+                        const id = url.split('v=')[1]?.split('&')[0];
+                        if (id) url = `https://www.youtube.com/embed/${id}`;
+                    }
+                    iframe.src = url;
+                }
+            }
+
+            // ==========================================
+            // USER MENU (Firebase Auth)
+            // ==========================================
+            function renderUserMenu(user) {
+                const container = document.getElementById('userMenuContainer');
+                if (!container) return;
+                if (user) {
+                    const displayName = user.displayName || user.email || 'User';
+                    const email = user.email || '';
+                    const photoURL = user.photoURL || '';
+                    const initial = displayName.charAt(0).toUpperCase();
+                    container.innerHTML = `
+                        <div class="user-menu">
+                            <div class="user-avatar">
+                                ${photoURL ? `<img src="${photoURL}" alt="${displayName}">` : initial}
+                            </div>
+                            <div class="user-info">
+                                <span class="user-name">${displayName}</span>
+                                <span class="user-email">${email}</span>
+                            </div>
+                            <button class="logout-btn" id="logoutBtn">Logout</button>
+                        </div>
+                    `;
+                    const logoutBtn = document.getElementById('logoutBtn');
+                    if (logoutBtn) {
+                        logoutBtn.addEventListener('click', function(e) {
+                            e.preventDefault();
+                            auth.signOut().catch(err => console.warn('Logout error:', err));
+                        });
+                    }
+                } else {
+                    container.innerHTML = `<a href="./login.html" class="login-link">Login</a>`;
+                }
+            }
+
+            // ==========================================
+            // INIT
+            // ==========================================
+            function init() {
+                renderHero();
+                renderGrid('trendingGrid', 'trending');
+                renderGrid('popularGrid', 'popular');
+                renderGrid('recentGrid', 'recent');
+                renderGrid('liveGrid', 'live');
+                renderTopViews();
+                renderComments();
+                renderVideo();
+
+                // Auth listener
+                auth.onAuthStateChanged(user => {
+                    renderUserMenu(user);
+                });
+
+                // Re-apply set-bg for all dynamic elements
+                document.querySelectorAll('.set-bg').forEach(el => {
+                    const bg = el.getAttribute('data-setbg');
+                    if (bg && !el.style.backgroundImage) {
+                        el.style.backgroundImage = `url(${bg})`;
+                    }
+                });
+
+                console.log('StreamingHub initialized. Admin can edit via localStorage keys:');
+                console.log('  streaminghub_hero, streaminghub_trending, streaminghub_popular,');
+                console.log('  streaminghub_recent, streaminghub_topViews, streaminghub_live,');
+                console.log('  streaminghub_comments, streaminghub_videoUrl');
+            }
+
+            // Run when DOM ready
+            if (document.readyState === 'loading') {
+                document.addEventListener('DOMContentLoaded', init);
+            } else {
+                init();
+            }
+
+        })();
+    </script>
 
 </body>
 
