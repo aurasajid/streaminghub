@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StreamingHub | Player</title>
+
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Oswald:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Mulish:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+    <!-- Bootstrap -->
+    <link rel="stylesheet" href="css/bootstrap.min.css" type="text/css">
+
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js">
+    </script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js">
+    </script>
+
+    <style>
+        /* ============================================================
+           ROOT VARIABLES
+           ============================================================ */
+        :root {
+            --primary: #e74c3c;
+            --primary-dark: #c0392b;
+            --primary-glow: rgba(231, 76, 60, 0.3);
+            --bg-dark: #0b0c2a;
+            --bg-secondary: #13153a;
+            --bg-card: #1a1d4a;
+            --bg-input: #22265a;
+            --text-light: #ffffff;
+            --text-muted: rgba(255, 255, 255, 0.6);
+            --text-dim: rgba(255, 255, 255, 0.3);
+            --border-color: rgba(255, 255, 255, 0.06);
+            --border-radius: 12px;
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+
+        /* ============================================================
+           RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg-dark);
+            color: var(--text-light);
+            font-family: 'Mulish', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        a {
+            color: var(--text-light);
+            transition: var(--transition);
+            text-decoration: none;
+        }
+        a:hover {
+            color: var(--primary);
+        }
+
+        /* ============================================================
+           HEADER
+           ============================================================ */
+        .header {
+            background: rgba(11, 12, 42, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border-color);
+            padding: 12px 0;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+
+        .header .container {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .header .logo img {
+            max-height: 42px;
+            width: auto;
+        }
+
+        .header .back-link {
+            color: var(--text-muted);
+            font-size: 14px;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .header .back-link:hover {
+            color: var(--primary);
+        }
+
+        /* ============================================================
+           PLAYER WRAPPER
+           ============================================================ */
+        .player-wrapper {
+            padding: 30px 0 20px;
+        }
+
+        .player-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: var(--border-radius);
+            background: #000;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow);
+        }
+
+        .player-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .player-container .player-placeholder {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, var(--bg-dark), var(--bg-secondary));
+            color: var(--text-muted);
+        }
+
+        .player-container .player-placeholder i {
+            font-size: 64px;
+            color: var(--primary);
+            margin-bottom: 16px;
+            opacity: 0.6;
+        }
+
+        .player-container .player-placeholder h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px;
+            color: var(--text-light);
+        }
+
+        .player-container .player-placeholder p {
+            font-size: 14px;
+            color: var(--text-muted);
+        }
+
+        /* ============================================================
+           ANIME INFO
+           ============================================================ */
+        .anime-info {
+            padding: 20px 0 10px;
+        }
+
+        .anime-info h1 {
+            font-family: 'Oswald', sans-serif;
+            font-size: clamp(24px, 3vw, 36px);
+            font-weight: 700;
+            margin: 0;
+        }
+
+        .anime-info .meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-top: 8px;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .anime-info .meta span {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .anime-info .meta i {
+            color: var(--primary);
+        }
+
+        /* ============================================================
+           EPISODE NAVIGATION
+           ============================================================ */
+        .episode-nav {
+            padding: 10px 0 30px;
+        }
+
+        .episode-nav .nav-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+
+        .episode-nav .nav-header h4 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 20px;
+            font-weight: 600;
+            margin: 0;
+        }
+
+        .episode-nav .nav-header h4 i {
+            color: var(--primary);
+            margin-right: 8px;
+        }
+
+        .episode-nav .nav-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .episode-nav .nav-controls select {
+            background: var(--bg-secondary);
+            color: var(--text-light);
+            border: 1px solid var(--border-color);
+            padding: 8px 16px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: 'Mulish', sans-serif;
+            cursor: pointer;
+            outline: none;
+            transition: var(--transition);
+            min-width: 140px;
+        }
+
+        .episode-nav .nav-controls select:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+
+        .episode-nav .nav-controls select option {
+            background: var(--bg-dark);
+            color: var(--text-light);
+        }
+
+        .episode-nav .nav-controls .episode-counter {
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+
+        /* Episode Grid */
+        .episode-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 10px;
+            max-height: 300px;
+            overflow-y: auto;
+            padding: 4px 2px 8px;
+        }
+
+        .episode-grid::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .episode-grid::-webkit-scrollbar-track {
+            background: var(--bg-primary);
+            border-radius: 4px;
+        }
+
+        .episode-grid::-webkit-scrollbar-thumb {
+            background: var(--primary);
+            border-radius: 4px;
+        }
+
+        .episode-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            color: var(--text-light);
+            padding: 10px 14px;
+            border-radius: 8px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-family: 'Mulish', sans-serif;
+            text-align: left;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            position: relative;
+        }
+
+        .episode-btn:hover {
+            background: rgba(231, 76, 60, 0.1);
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .episode-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: #fff;
+            box-shadow: 0 4px 16px var(--primary-glow);
+        }
+
+        .episode-btn .ep-number {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        .episode-btn .ep-title {
+            font-size: 12px;
+            color: var(--text-muted);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .episode-btn.active .ep-title {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .episode-btn .ep-status {
+            position: absolute;
+            top: 6px;
+            right: 8px;
+            font-size: 10px;
+        }
+
+        .episode-btn .ep-status.has-video {
+            color: #2ecc71;
+        }
+        .episode-btn .ep-status.no-video {
+            color: var(--text-dim);
+        }
+
+        .episode-btn .ep-status i {
+            font-size: 12px;
+        }
+
+        .episode-btn.no-video-btn {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .episode-btn.no-video-btn:hover {
+            transform: none;
+            background: var(--bg-card);
+            border-color: var(--border-color);
+        }
+
+        .no-episodes-msg {
+            grid-column: 1 / -1;
+            text-align: center;
+            color: var(--text-muted);
+            padding: 30px 0;
+            font-size: 15px;
+        }
+
+        /* ============================================================
+           LOADING / ERROR STATES
+           ============================================================ */
+        .loading-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+        }
+
+        .loading-state .spinner {
+            width: 48px;
+            height: 48px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin-bottom: 16px;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .error-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .error-state i {
+            font-size: 48px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .error-state h3 {
+            font-family: 'Oswald', sans-serif;
+            font-size: 24px;
+            color: var(--text-light);
+        }
+
+        /* ============================================================
+           RESPONSIVE
+           ============================================================ */
+        @media (max-width: 768px) {
+            .player-wrapper {
+                padding: 16px 0 10px;
+            }
+
+            .episode-grid {
+                grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+                max-height: 200px;
+            }
+
+            .episode-nav .nav-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .episode-nav .nav-controls {
+                flex-wrap: wrap;
+            }
+
+            .episode-nav .nav-controls select {
+                flex: 1;
+                min-width: 100px;
+            }
+
+            .anime-info h1 {
+                font-size: 22px;
+            }
+
+            .header .container {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .episode-grid {
+                grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+                gap: 8px;
+            }
+
+            .episode-btn {
+                padding: 8px 10px;
+                font-size: 12px;
+            }
+
+            .episode-btn .ep-title {
+                font-size: 11px;
+            }
+
+            .player-container {
+                border-radius: 8px;
+            }
+        }
+
+        /* ============================================================
+           TOAST
+           ============================================================ */
+        .toast-container {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            padding: 14px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            box-shadow: var(--shadow);
+            animation: slideUp 0.3s ease;
+            max-width: 360px;
+            border-left: 4px solid var(--primary);
+        }
+
+        .toast.success {
+            border-left-color: #2ecc71;
+        }
+        .toast.error {
+            border-left-color: var(--primary);
+        }
+        .toast.info {
+            border-left-color: #3498db;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ============================================================
+    HEADER
+    ============================================================ -->
+    <header class="header">
+        <div class="container">
+            <div class="logo">
+                <a href="./index.html">
+                    <img src="img/logo.png" alt="StreamingHub">
+                </a>
+            </div>
+            <a href="./index.html" class="back-link">
+                <i class="fas fa-arrow-left"></i> Back to Home
+            </a>
+        </div>
+    </header>
+
+    <!-- ============================================================
+    MAIN CONTENT
+    ============================================================ -->
+    <main class="container">
+
+        <!-- Player -->
+        <section class="player-wrapper">
+            <div class="player-container" id="playerContainer">
+                <iframe id="playerIframe"
+                    src=""
+                    title="Video Player"
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                    allowfullscreen>
+                </iframe>
+                <div class="player-placeholder" id="playerPlaceholder">
+                    <i class="fas fa-play-circle"></i>
+                    <h3>Select an Episode</h3>
+                    <p>Choose an episode from the list below to start watching</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Anime Info -->
+        <section class="anime-info" id="animeInfo">
+            <h1 id="animeTitle">Loading...</h1>
+            <div class="meta" id="animeMeta">
+                <span><i class="fas fa-tag"></i> <span id="animeTags">-</span></span>
+                <span><i class="fas fa-eye"></i> <span id="animeViews">-</span> views</span>
+                <span><i class="fas fa-comment"></i> <span id="animeComments">-</span> comments</span>
+                <span><i class="fas fa-layer-group"></i> <span id="animeSeason">Season 1</span></span>
+            </div>
+        </section>
+
+        <!-- Episode Navigation -->
+        <section class="episode-nav" id="episodeNav">
+            <div class="nav-header">
+                <h4><i class="fas fa-list"></i> Episodes</h4>
+                <div class="nav-controls">
+                    <select id="seasonSelect">
+                        <option value="">Loading seasons...</option>
+                    </select>
+                    <span class="episode-counter" id="episodeCounter">0 episodes</span>
+                </div>
+            </div>
+            <div class="episode-grid" id="episodeGrid">
+                <div class="no-episodes-msg">Loading episodes...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ============================================================
+    TOAST CONTAINER
+    ============================================================ -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- ============================================================
+    SCRIPTS
+    ============================================================ -->
+    <script>
+        (function() {
+            'use strict';
+
+            // ============================================================
+            // FIREBASE CONFIG
+            // ============================================================
+            const firebaseConfig = {
+                apiKey: "AIzaSyDqyJr6gMzwM0HJNeU_BP5EbG5Nxyhpaqw",
+                authDomain: "streaming-hub-67.firebaseapp.com",
+                projectId: "streaming-hub-67",
+                storageBucket: "streaming-hub-67.firebasestorage.app",
+                messagingSenderId: "99843602028",
+                appId: "1:99843602028:web:0a5a52606c2919498c4a49",
+                measurementId: "G-T3S9SEEBD7"
+            };
+
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+
+            // ============================================================
+            // DOM REFS
+            // ============================================================
+            const playerIframe = document.getElementById('playerIframe');
+            const playerPlaceholder = document.getElementById('playerPlaceholder');
+            const animeTitle = document.getElementById('animeTitle');
+            const animeTags = document.getElementById('animeTags');
+            const animeViews = document.getElementById('animeViews');
+            const animeComments = document.getElementById('animeComments');
+            const animeSeason = document.getElementById('animeSeason');
+            const seasonSelect = document.getElementById('seasonSelect');
+            const episodeGrid = document.getElementById('episodeGrid');
+            const episodeCounter = document.getElementById('episodeCounter');
+            const toastContainer = document.getElementById('toastContainer');
+
+            // ============================================================
+            // STATE
+            // ============================================================
+            let currentAnime = null;
+            let currentSeason = 1;
+            let currentEpisodeIndex = -1;
+            let allEpisodes = [];
+            let seasons = [];
+
+            // ============================================================
+            // HELPERS
+            // ============================================================
+            function showToast(message, type = 'info') {
+                const toast = document.createElement('div');
+                toast.className = 'toast ' + type;
+                toast.textContent = message;
+                toastContainer.appendChild(toast);
+                setTimeout(() => {
+                    toast.remove();
+                }, 3500);
+            }
+
+            function getYouTubeEmbedId(url) {
+                if (!url) return null;
+                // Handle various YouTube URL formats
+                const patterns = [
+                    /youtube\.com\/embed\/([^?&]+)/,
+                    /youtube\.com\/watch\?v=([^&]+)/,
+                    /youtu\.be\/([^?&]+)/,
+                    /youtube\.com\/v\/([^?&]+)/
+                ];
+                for (const pattern of patterns) {
+                    const match = url.match(pattern);
+                    if (match) return match[1];
+                }
+                return url; // Return as-is if no pattern matches
+            }
+
+            function loadVideo(videoUrl) {
+                if (!videoUrl || videoUrl.trim() === '') {
+                    playerIframe.src = '';
+                    playerPlaceholder.style.display = 'flex';
+                    return;
+                }
+
+                let embedUrl = videoUrl;
+                // If it's a watch URL, convert to embed
+                if (videoUrl.includes('watch?v=')) {
+                    const id = getYouTubeEmbedId(videoUrl);
+                    if (id && !id.includes('http')) {
+                        embedUrl = `https://www.youtube.com/embed/${id}`;
+                    }
+                }
+                // If it's a youtu.be URL, convert to embed
+                if (videoUrl.includes('youtu.be/')) {
+                    const id = getYouTubeEmbedId(videoUrl);
+                    if (id && !id.includes('http')) {
+                        embedUrl = `https://www.youtube.com/embed/${id}`;
+                    }
+                }
+
+                playerIframe.src = embedUrl;
+                playerPlaceholder.style.display = 'none';
+            }
+
+            // ============================================================
+            // RENDER FUNCTIONS
+            // ============================================================
+            function renderAnimeInfo(anime) {
+                if (!anime) return;
+                animeTitle.textContent = anime.title || 'Untitled';
+                animeTags.textContent = anime.tags ? anime.tags.join(', ') : '-';
+                animeViews.textContent = anime.views || 0;
+                animeComments.textContent = anime.comments || 0;
+                animeSeason.textContent = `Season ${currentSeason}`;
+            }
+
+            function renderSeasons() {
+                seasonSelect.innerHTML = '';
+                if (seasons.length === 0) {
+                    seasonSelect.innerHTML = '<option value="1">Season 1</option>';
+                    return;
+                }
+                seasons.forEach(s => {
+                    const opt = document.createElement('option');
+                    opt.value = s;
+                    opt.textContent = `Season ${s}`;
+                    if (s === currentSeason) opt.selected = true;
+                    seasonSelect.appendChild(opt);
+                });
+            }
+
+            function renderEpisodes() {
+                const seasonEpisodes = allEpisodes.filter(ep => (ep.season || 1) === currentSeason);
+
+                if (seasonEpisodes.length === 0) {
+                    episodeGrid.innerHTML = '<div class="no-episodes-msg">No episodes found for this season</div>';
+                    episodeCounter.textContent = '0 episodes';
+                    return;
+                }
+
+                episodeCounter.textContent = `${seasonEpisodes.length} episodes`;
+
+                let html = '';
+                seasonEpisodes.forEach((ep, idx) => {
+                    const isActive = (currentEpisodeIndex === idx && currentSeason === currentSeason);
+                    const hasVideo = ep.youtube && ep.youtube.trim() !== '';
+                    const statusClass = hasVideo ? 'has-video' : 'no-video';
+                    const noVideoClass = !hasVideo ? 'no-video-btn' : '';
+                    const activeClass = isActive ? 'active' : '';
+                    const epNumber = ep.number || idx + 1;
+                    const epTitle = ep.title || `Episode ${epNumber}`;
+
+                    html += `
+                        <button class="episode-btn ${noVideoClass} ${activeClass}" 
+                                data-index="${idx}" 
+                                data-season="${currentSeason}"
+                                data-url="${ep.youtube || ''}"
+                                data-title="${epTitle}"
+                                data-number="${epNumber}"
+                                ${!hasVideo ? 'disabled' : ''}>
+                            <span class="ep-number">${epNumber}</span>
+                            <span class="ep-title">${epTitle}</span>
+                            <span class="ep-status ${statusClass}">
+                                ${hasVideo ? '<i class="fas fa-play-circle"></i>' : '<i class="fas fa-lock"></i>'}
+                            </span>
+                        </button>
+                    `;
+                });
+                episodeGrid.innerHTML = html;
+
+                // Add click handlers
+                episodeGrid.querySelectorAll('.episode-btn:not(.no-video-btn)').forEach(btn => {
+                    btn.addEventListener('click', function() {
+                        const url = this.dataset.url;
+                        const title = this.dataset.title;
+                        const idx = parseInt(this.dataset.index);
+                        const season = parseInt(this.dataset.season);
+
+                        if (url && url.trim() !== '') {
+                            loadVideo(url);
+                            currentEpisodeIndex = idx;
+                            currentSeason = season;
+
+                            // Update active state
+                            episodeGrid.querySelectorAll('.episode-btn').forEach(b => b.classList.remove(
+                            'active'));
+                            this.classList.add('active');
+
+                            // Update anime info
+                            renderAnimeInfo(currentAnime);
+
+                            // Update URL without reload
+                            const epNum = this.dataset.number || idx + 1;
+                            document.title = `${currentAnime.title} - Episode ${epNum}`;
+                            showToast(`Now playing: Episode ${epNum}`, 'success');
+                        }
+                    });
+                });
+
+                // Auto-play first episode with video if none selected
+                if (currentEpisodeIndex === -1) {
+                    const firstWithVideo = seasonEpisodes.findIndex(ep => ep.youtube && ep.youtube.trim() !== '');
+                    if (firstWithVideo !== -1) {
+                        const ep = seasonEpisodes[firstWithVideo];
+                        if (ep.youtube) {
+                            loadVideo(ep.youtube);
+                            currentEpisodeIndex = firstWithVideo;
+                            currentSeason = currentSeason;
+                            // Update active state after render
+                            setTimeout(() => {
+                                const btns = episodeGrid.querySelectorAll('.episode-btn');
+                                if (btns[firstWithVideo]) {
+                                    btns[firstWithVideo].classList.add('active');
+                                }
+                                const epNum = ep.number || firstWithVideo + 1;
+                                document.title = `${currentAnime.title} - Episode ${epNum}`;
+                            }, 100);
+                        }
+                    }
+                }
+            }
+
+            function renderAll() {
+                if (!currentAnime) return;
+                renderAnimeInfo(currentAnime);
+                renderSeasons();
+                renderEpisodes();
+            }
+
+            // ============================================================
+            // DATA LOADING
+            // ============================================================
+            function loadAnimeData() {
+                // Try to get data from sessionStorage (passed from index.html)
+                let playerData = null;
+                try {
+                    const stored = sessionStorage.getItem('playerData');
+                    if (stored) {
+                        playerData = JSON.parse(stored);
+                    }
+                } catch (e) {
+                    console.warn('Failed to parse player data:', e);
+                }
+
+                if (playerData && playerData.anime) {
+                    currentAnime = playerData.anime;
+                    currentSeason = playerData.season || 1;
+                    currentEpisodeIndex = playerData.episodeIndex || -1;
+                    allEpisodes = currentAnime.episodes || [];
+
+                    // Extract unique seasons
+                    const seasonSet = new Set();
+                    allEpisodes.forEach(ep => {
+                        seasonSet.add(ep.season || 1);
+                    });
+                    seasons = Array.from(seasonSet).sort((a, b) => a - b);
+
+                    if (seasons.length === 0) seasons = [1];
+
+                    // If currentSeason not in seasons, use first
+                    if (!seasons.includes(currentSeason)) {
+                        currentSeason = seasons[0];
+                    }
+
+                    renderAll();
+
+                    // Auto-load first episode if available
+                    if (currentEpisodeIndex === -1) {
+                        const seasonEpisodes = allEpisodes.filter(ep => (ep.season || 1) === currentSeason);
+                        const firstWithVideo = seasonEpisodes.findIndex(ep => ep.youtube && ep.youtube.trim() !== '');
+                        if (firstWithVideo !== -1) {
+                            const ep = seasonEpisodes[firstWithVideo];
+                            if (ep.youtube) {
+                                loadVideo(ep.youtube);
+                                currentEpisodeIndex = firstWithVideo;
+                                // Update active state after render
+                                setTimeout(() => {
+                                    const btns = episodeGrid.querySelectorAll('.episode-btn');
+                                    if (btns[firstWithVideo]) {
+                                        btns[firstWithVideo].classList.add('active');
+                                    }
+                                    const epNum = ep.number || firstWithVideo + 1;
+                                    document.title = `${currentAnime.title} - Episode ${epNum}`;
+                                }, 200);
+                            }
+                        }
+                    } else {
+                        // Load the selected episode
+                        const allEp = allEpisodes.filter(ep => (ep.season || 1) === currentSeason);
+                        if (currentEpisodeIndex < allEp.length) {
+                            const ep = allEp[currentEpisodeIndex];
+                            if (ep && ep.youtube) {
+                                loadVideo(ep.youtube);
+                                document.title = `${currentAnime.title} - ${ep.title || 'Episode ' + (ep.number || currentEpisodeIndex + 1)}`;
+                            }
+                        }
+                    }
+
+                    showToast(`Loaded: ${currentAnime.title}`, 'info');
+                    return true;
+                }
+
+                // Fallback: try to load from Firestore directly
+                loadFromFirestore();
+                return false;
+            }
+
+            // ============================================================
+            // FIRESTORE LOAD (Fallback)
+            // ============================================================
+            async function loadFromFirestore() {
+                try {
+                    const doc = await db.collection('websiteData').doc('content').get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        // Try to find an anime with episodes
+                        const collections = ['trending', 'popular', 'recent', 'live'];
+                        let found = false;
+                        for (const key of collections) {
+                            if (data[key] && Array.isArray(data[key])) {
+                                const withEpisodes = data[key].find(item => item.episodes && item.episodes.length > 0);
+                                if (withEpisodes) {
+                                    currentAnime = withEpisodes;
+                                    allEpisodes = withEpisodes.episodes || [];
+                                    const seasonSet = new Set();
+                                    allEpisodes.forEach(ep => {
+                                        seasonSet.add(ep.season || 1);
+                                    });
+                                    seasons = Array.from(seasonSet).sort((a, b) => a - b);
+                                    if (seasons.length === 0) seasons = [1];
+                                    currentSeason = seasons[0];
+                                    currentEpisodeIndex = -1;
+                                    renderAll();
+                                    found = true;
+
+                                    // Auto-load first episode
+                                    const firstWithVideo = allEpisodes.findIndex(ep => ep.youtube && ep.youtube.trim() !==
+                                    '');
+                                    if (firstWithVideo !== -1) {
+                                        const ep = allEpisodes[firstWithVideo];
+                                        if (ep.youtube) {
+                                            loadVideo(ep.youtube);
+                                            currentEpisodeIndex = firstWithVideo;
+                                            setTimeout(() => {
+                                                const btns = episodeGrid.querySelectorAll('.episode-btn');
+                                                if (btns[firstWithVideo]) {
+                                                    btns[firstWithVideo].classList.add('active');
+                                                }
+                                            }, 200);
+                                        }
+                                    }
+                                    showToast(`Loaded: ${currentAnime.title} from Firestore`, 'info');
+                                    break;
+                                }
+                            }
+                        }
+                        if (!found) {
+                            showToast('No anime with episodes found in Firestore. Please add some via admin panel.',
+                            'error');
+                            document.querySelector('.loading-state')?.remove();
+                            episodeGrid.innerHTML =
+                                '<div class="no-episodes-msg">No episodes available. Please check back later.</div>';
+                        }
+                    } else {
+                        showToast('No data found in Firestore.', 'error');
+                    }
+                } catch (e) {
+                    console.error('Firestore load error:', e);
+                    showToast('Failed to load from Firestore: ' + e.message, 'error');
+                }
+            }
+
+            // ============================================================
+            // EVENT LISTENERS
+            // ============================================================
+            seasonSelect.addEventListener('change', function() {
+                currentSeason = parseInt(this.value);
+                currentEpisodeIndex = -1;
+                renderEpisodes();
+
+                // Auto-load first episode with video for this season
+                const seasonEpisodes = allEpisodes.filter(ep => (ep.season || 1) === currentSeason);
+                const firstWithVideo = seasonEpisodes.findIndex(ep => ep.youtube && ep.youtube.trim() !== '');
+                if (firstWithVideo !== -1) {
+                    const ep = seasonEpisodes[firstWithVideo];
+                    if (ep.youtube) {
+                        loadVideo(ep.youtube);
+                        currentEpisodeIndex = firstWithVideo;
+                        setTimeout(() => {
+                            const btns = episodeGrid.querySelectorAll('.episode-btn');
+                            if (btns[firstWithVideo]) {
+                                btns[firstWithVideo].classList.add('active');
+                            }
+                            const epNum = ep.number || firstWithVideo + 1;
+                            document.title = `${currentAnime.title} - Episode ${epNum}`;
+                        }, 200);
+                    }
+                }
+                renderAnimeInfo(currentAnime);
+            });
+
+            // ============================================================
+            // KEYBOARD SHORTCUTS
+            // ============================================================
+            document.addEventListener('keydown', function(e) {
+                // Arrow keys for episode navigation
+                const btns = episodeGrid.querySelectorAll('.episode-btn:not(.no-video-btn)');
+                if (btns.length === 0) return;
+
+                let currentIdx = -1;
+                btns.forEach((btn, idx) => {
+                    if (btn.classList.contains('active')) {
+                        currentIdx = idx;
+                    }
+                });
+
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    const nextIdx = (currentIdx + 1) % btns.length;
+                    btns[nextIdx].click();
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    const prevIdx = (currentIdx - 1 + btns.length) % btns.length;
+                    btns[prevIdx].click();
+                } else if (e.key === 'f' || e.key === 'F') {
+                    e.preventDefault();
+                    if (playerIframe.requestFullscreen) {
+                        playerIframe.parentElement.requestFullscreen?.();
+                    }
+                }
+            });
+
+            // ============================================================
+            // INIT
+            // ============================================================
+            console.log('🎬 StreamingHub Player loaded.');
+
+            // Try loading from sessionStorage first, fallback to Firestore
+            const loaded = loadAnimeData();
+            if (!loaded) {
+                // Show loading state while Firestore loads
+                episodeGrid.innerHTML = `
+                    <div class="loading-state" style="grid-column:1/-1;">
+                        <div class="spinner"></div>
+                        <p>Loading episodes from Firestore...</p>
+                    </div>
+                `;
+            }
+
+        })();
+    </script>
+
+</body>
+
+</html>
