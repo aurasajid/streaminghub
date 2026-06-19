@@ -1221,7 +1221,7 @@
 
 
     <!-- ============================================================
-    JAVASCRIPT - FIXED
+    JAVASCRIPT - SIMPLIFIED & FIXED
     ============================================================ -->
     <script>
         (function() {
@@ -1255,10 +1255,12 @@
             // STATE
             // ============================================================
             const STORAGE_PREFIX = 'streaminghub_';
-            let isSynced = false;
-            let hasLoadedFromFirestore = false;
             const FIRESTORE_COLLECTION = 'websiteData';
+            let dataLoaded = false;
 
+            // ============================================================
+            // DEFAULT DATA
+            // ============================================================
             const DEFAULT_DATA = {
                 hero: [
                     { title: 'Fate / Stay Night: Unlimited Blade Works', label: 'Adventure',
@@ -1361,7 +1363,7 @@
             };
 
             // ============================================================
-            // HELPERS
+            // STORAGE HELPERS
             // ============================================================
             function getData(key) {
                 try {
@@ -1388,26 +1390,19 @@
             function getSettings() {
                 try {
                     const stored = localStorage.getItem(STORAGE_PREFIX + 'siteSettings');
-                    if (stored) return JSON.parse(stored);
-                } catch (e) { /* ignore */ }
-                // Merge with defaults to ensure all keys exist
-                const defaults = DEFAULT_DATA.siteSettings;
-                const settings = { ...defaults };
-                try {
-                    const stored = localStorage.getItem(STORAGE_PREFIX + 'siteSettings');
                     if (stored) {
                         const parsed = JSON.parse(stored);
-                        Object.keys(parsed).forEach(key => {
-                            if (key === 'navItems' || key === 'footerNav') {
-                                settings[key] = parsed[key];
-                            } else {
-                                settings[key] = parsed[key];
-                            }
-                        });
+                        // Ensure all keys exist by merging with defaults
+                        const merged = { ...DEFAULT_DATA.siteSettings, ...parsed };
+                        // Make sure arrays are properly merged
+                        if (parsed.navItems) merged.navItems = parsed.navItems;
+                        if (parsed.footerNav) merged.footerNav = parsed.footerNav;
+                        localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(merged));
+                        return merged;
                     }
                 } catch (e) { /* ignore */ }
-                localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(settings));
-                return settings;
+                localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(DEFAULT_DATA.siteSettings));
+                return { ...DEFAULT_DATA.siteSettings };
             }
 
             function saveSettings(settings) {
@@ -1428,7 +1423,6 @@
             }
 
             function updateSyncStatus(synced) {
-                isSynced = synced;
                 const dot = document.getElementById('syncDot');
                 const label = document.getElementById('syncLabel');
                 if (synced) {
@@ -1441,7 +1435,7 @@
             }
 
             // ============================================================
-            // FIRESTORE OPERATIONS - FIXED
+            // FIRESTORE OPERATIONS
             // ============================================================
             function getAllData() {
                 const data = {};
@@ -1460,7 +1454,7 @@
                     const data = getAllData();
                     await db.collection(FIRESTORE_COLLECTION).doc('content').set(data);
                     updateSyncStatus(true);
-                    showToast('✅ All data synced to Firestore successfully!', 'success');
+                    showToast('✅ All data synced to Firestore!', 'success');
                     return true;
                 } catch (error) {
                     console.error('Sync error:', error);
@@ -1469,12 +1463,7 @@
                 }
             }
 
-            async function loadFromFirestore(force = false) {
-                // Only load from Firestore once unless forced
-                if (!force && hasLoadedFromFirestore) {
-                    console.log('ℹ️ Already loaded from Firestore, using local data');
-                    return;
-                }
+            async function loadFromFirestore() {
                 try {
                     const doc = await db.collection(FIRESTORE_COLLECTION).doc('content').get();
                     if (doc.exists) {
@@ -1491,29 +1480,18 @@
                             }
                         });
                         if (hasChanges) {
-                            console.log('✅ Loaded fresh data from Firestore');
                             renderAll();
                             renderSiteSettingsUI();
                             renderNavUI();
                             updateSyncStatus(true);
                             showToast('✅ Data loaded from Firestore!', 'success');
-                        } else {
-                            console.log('ℹ️ Firestore data matches local, no changes needed');
                         }
-                        hasLoadedFromFirestore = true;
-                        return true;
-                    } else {
-                        // No data in Firestore, push defaults
-                        await syncToFirestore();
-                        hasLoadedFromFirestore = true;
                         return true;
                     }
                 } catch (error) {
                     console.error('Load error:', error);
-                    // Don't show error on first load, just use defaults
-                    hasLoadedFromFirestore = true;
-                    return false;
                 }
+                return false;
             }
 
             // ============================================================
@@ -1627,11 +1605,9 @@
             function renderSiteSettingsUI() {
                 const settings = getSettings();
 
-                // Branding
                 document.getElementById('siteNameInput').value = settings.siteName || 'StreamingHub';
                 document.getElementById('logoUrlInput').value = settings.logo || 'img/logo.png';
 
-                // Section toggles
                 const sectionToggles = document.getElementById('sectionToggles');
                 const sections = [
                     { key: 'showHero', label: 'Hero Slider', icon: 'fa-images' },
@@ -1656,7 +1632,6 @@
                     `;
                 }).join('');
 
-                // Auth toggles
                 const authToggles = document.getElementById('authToggles');
                 authToggles.innerHTML = `
                     <div class="settings-card">
@@ -1690,17 +1665,16 @@
                 });
 
                 saveSettings(settings);
-                showToast('✅ All settings saved successfully!', 'success');
+                showToast('✅ All settings saved!', 'success');
                 updateSyncStatus(false);
             }
 
             // ============================================================
-            // NAVIGATION UI - FIXED PERSISTENCE
+            // NAVIGATION UI
             // ============================================================
             function renderNavUI() {
                 const settings = getSettings();
 
-                // Nav items
                 const navContainer = document.getElementById('navItemsContainer');
                 navContainer.innerHTML = settings.navItems.map((item, index) => `
                     <div class="settings-card" style="margin-bottom:8px;">
@@ -1715,7 +1689,6 @@
                     </div>
                 `).join('') || '<p style="color:var(--text-muted);padding:10px;">No nav items. Click "Add Link" to create one.</p>';
 
-                // Footer items
                 const footerContainer = document.getElementById('footerItemsContainer');
                 footerContainer.innerHTML = settings.footerNav.map((item, index) => `
                     <div class="settings-card" style="margin-bottom:8px;">
@@ -1763,7 +1736,6 @@
             function saveNavSettings() {
                 const settings = getSettings();
 
-                // Collect nav items
                 const navItems = [];
                 document.querySelectorAll('#navItemsContainer .settings-card').forEach(card => {
                     const label = card.querySelector('.nav-label')?.value?.trim() || 'Link';
@@ -1773,7 +1745,6 @@
                 });
                 settings.navItems = navItems;
 
-                // Collect footer items
                 const footerItems = [];
                 document.querySelectorAll('#footerItemsContainer .settings-card').forEach(card => {
                     const label = card.querySelector('.footer-label')?.value?.trim() || 'Link';
@@ -1979,7 +1950,6 @@
 
                 modalFields.innerHTML = html;
 
-                // Handle episodes
                 if (type !== 'hero' && type !== 'topViews' && type !== 'comments') {
                     const container = document.getElementById('episodesContainer');
                     if (container) {
@@ -2073,7 +2043,6 @@
                     document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
                     document.getElementById('tab-' + tabId).classList.add('active');
 
-                    // Refresh UI when switching to settings or nav tabs
                     if (tabId === 'settings') {
                         renderSiteSettingsUI();
                     } else if (tabId === 'nav') {
@@ -2101,11 +2070,19 @@
                     adminPanel.style.display = 'block';
                     adminEmailDisplay.textContent = ADMIN_CREDENTIALS.email;
                     adminAvatar.textContent = 'A';
+
+                    // Load data from localStorage
                     renderAll();
                     renderSiteSettingsUI();
                     renderNavUI();
-                    // Load from Firestore once
-                    loadFromFirestore();
+                    updateSyncStatus(true);
+
+                    // Try to load from Firestore in background (but don't overwrite if user has made changes)
+                    if (!dataLoaded) {
+                        loadFromFirestore().then(() => {
+                            dataLoaded = true;
+                        });
+                    }
                 } else {
                     loginScreen.style.display = 'block';
                     adminPanel.style.display = 'none';
@@ -2162,7 +2139,6 @@
                         modalForm.dispatchEvent(new Event('submit'));
                     } else {
                         e.preventDefault();
-                        // Save all settings then sync
                         saveSiteSettings();
                         saveNavSettings();
                         syncToFirestore();
@@ -2181,8 +2157,8 @@
                 }
             });
 
-            // Also ensure siteSettings exists with all keys
-            const settings = getSettings();
+            // Ensure siteSettings exists
+            getSettings();
 
             checkAuth();
 
@@ -2190,8 +2166,7 @@
             console.log('📦 Data stored in localStorage with prefix:', STORAGE_PREFIX);
             console.log('🔑 Default credentials: admin@streaminghub.com / 123456');
             console.log('💡 Press Ctrl+S to save and sync to Firestore');
-            console.log('📋 Changes are saved locally and auto-synced when you add/edit content!');
-            console.log('✅ Settings will now persist after refresh!');
+            console.log('✅ Changes are saved locally and persist after refresh!');
 
         })();
     </script>
