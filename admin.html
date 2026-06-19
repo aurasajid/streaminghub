@@ -484,6 +484,68 @@
             color: #fff;
         }
 
+        /* ---- Master Save Button ---- */
+        .master-save-bar {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 16px 20px;
+            margin: 20px 0 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .master-save-bar .info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .master-save-bar .info i {
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .master-save-bar .info span {
+            font-size: 14px;
+            color: var(--text-secondary);
+        }
+
+        .master-save-bar .info strong {
+            color: var(--text-primary);
+        }
+
+        .master-save-bar .btn-master-save {
+            background: var(--success);
+            color: #fff;
+            border: none;
+            padding: 10px 28px;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .master-save-bar .btn-master-save:hover {
+            background: #27ae60;
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px var(--success-glow);
+        }
+
+        .master-save-bar .btn-master-save:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
         /* ---- Cards Grid ---- */
         .cards-grid {
             display: grid;
@@ -965,6 +1027,16 @@
                 padding: 6px 12px;
                 font-size: 12px;
             }
+
+            .master-save-bar {
+                flex-direction: column;
+                align-items: stretch;
+                text-align: center;
+            }
+
+            .master-save-bar .info {
+                justify-content: center;
+            }
         }
 
         @media (max-width: 480px) {
@@ -1045,8 +1117,24 @@
             </div>
         </div>
 
+        <!-- Master Save Bar -->
+        <div class="admin-body" style="padding-bottom:0;">
+            <div class="master-save-bar">
+                <div class="info">
+                    <i class="fas fa-save"></i>
+                    <div>
+                        <strong>Master Save</strong>
+                        <span>— Save all changes across Content, Settings & Navigation</span>
+                    </div>
+                </div>
+                <button class="btn-master-save" id="masterSaveBtn">
+                    <i class="fas fa-save"></i> Save All Changes
+                </button>
+            </div>
+        </div>
+
         <!-- Tabs -->
-        <div class="admin-body">
+        <div class="admin-body" style="padding-top:10px;">
             <div class="admin-tabs">
                 <button class="tab-btn active" data-tab="content"><i class="fas fa-film"></i> Content</button>
                 <button class="tab-btn" data-tab="settings"><i class="fas fa-sliders-h"></i> Site Settings</button>
@@ -1132,7 +1220,6 @@
             <div class="tab-content" id="tab-settings">
                 <div class="section-header">
                     <h3><i class="fas fa-paint-brush"></i> Branding</h3>
-                    <button class="btn-add btn-add-sm" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save Settings</button>
                 </div>
                 <div class="settings-grid">
                     <div class="settings-card">
@@ -1158,11 +1245,6 @@
                 <div class="settings-grid" id="authToggles">
                     <!-- Auth toggles injected by JS -->
                 </div>
-
-                <div style="margin-top:16px;">
-                    <button class="btn-success" onclick="saveSiteSettings()"><i class="fas fa-save"></i> Save All Settings</button>
-                    <button class="btn-add" onclick="syncToFirestore()" style="margin-left:8px;"><i class="fas fa-cloud-upload-alt"></i> Sync to Firestore</button>
-                </div>
             </div>
 
             <!-- ====== TAB 3: NAVIGATION ====== -->
@@ -1181,11 +1263,6 @@
                 </div>
                 <div id="footerItemsContainer">
                     <!-- Footer items injected by JS -->
-                </div>
-
-                <div style="margin-top:16px;">
-                    <button class="btn-success" onclick="saveNavSettings()"><i class="fas fa-save"></i> Save Navigation</button>
-                    <button class="btn-add" onclick="syncToFirestore()" style="margin-left:8px;"><i class="fas fa-cloud-upload-alt"></i> Sync to Firestore</button>
                 </div>
             </div>
 
@@ -1221,7 +1298,7 @@
 
 
     <!-- ============================================================
-    JAVASCRIPT - SIMPLIFIED & FIXED
+    JAVASCRIPT - FULLY FIXED
     ============================================================ -->
     <script>
         (function() {
@@ -1252,11 +1329,11 @@
             };
 
             // ============================================================
-            // STATE
+            // CONSTANTS
             // ============================================================
             const STORAGE_PREFIX = 'streaminghub_';
             const FIRESTORE_COLLECTION = 'websiteData';
-            let dataLoaded = false;
+            let isSaving = false;
 
             // ============================================================
             // DEFAULT DATA
@@ -1363,7 +1440,7 @@
             };
 
             // ============================================================
-            // STORAGE HELPERS
+            // STORAGE HELPERS - FIXED
             // ============================================================
             function getData(key) {
                 try {
@@ -1392,9 +1469,8 @@
                     const stored = localStorage.getItem(STORAGE_PREFIX + 'siteSettings');
                     if (stored) {
                         const parsed = JSON.parse(stored);
-                        // Ensure all keys exist by merging with defaults
+                        // Merge with defaults to ensure all keys exist
                         const merged = { ...DEFAULT_DATA.siteSettings, ...parsed };
-                        // Make sure arrays are properly merged
                         if (parsed.navItems) merged.navItems = parsed.navItems;
                         if (parsed.footerNav) merged.footerNav = parsed.footerNav;
                         localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(merged));
@@ -1408,9 +1484,11 @@
             function saveSettings(settings) {
                 localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(settings));
                 updateSyncStatus(false);
-                showToast('✅ Settings saved locally!', 'success');
             }
 
+            // ============================================================
+            // UI HELPERS
+            // ============================================================
             function showToast(message, type = 'success') {
                 const container = document.getElementById('toastContainer');
                 const toast = document.createElement('div');
@@ -1492,6 +1570,75 @@
                     console.error('Load error:', error);
                 }
                 return false;
+            }
+
+            // ============================================================
+            // MASTER SAVE - FIXED
+            // ============================================================
+            async function masterSave() {
+                if (isSaving) return;
+                isSaving = true;
+
+                const btn = document.getElementById('masterSaveBtn');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+                btn.disabled = true;
+
+                try {
+                    // Collect all current data
+                    const settings = getSettings();
+
+                    // Get values from UI
+                    settings.siteName = document.getElementById('siteNameInput').value.trim() || 'StreamingHub';
+                    settings.logo = document.getElementById('logoUrlInput').value.trim() || 'img/logo.png';
+
+                    // Section toggles
+                    document.querySelectorAll('#sectionToggles input[type="checkbox"]').forEach(cb => {
+                        settings[cb.dataset.setting] = cb.checked;
+                    });
+
+                    // Auth toggles
+                    document.querySelectorAll('#authToggles input[type="checkbox"]').forEach(cb => {
+                        settings[cb.dataset.setting] = cb.checked;
+                    });
+
+                    // Nav items
+                    const navItems = [];
+                    document.querySelectorAll('#navItemsContainer .settings-card').forEach(card => {
+                        const label = card.querySelector('.nav-label')?.value?.trim() || 'Link';
+                        const link = card.querySelector('.nav-link')?.value?.trim() || '#';
+                        const active = card.querySelector('.nav-active')?.checked || false;
+                        navItems.push({ label, link, active });
+                    });
+                    settings.navItems = navItems;
+
+                    // Footer items
+                    const footerItems = [];
+                    document.querySelectorAll('#footerItemsContainer .settings-card').forEach(card => {
+                        const label = card.querySelector('.footer-label')?.value?.trim() || 'Link';
+                        const link = card.querySelector('.footer-link')?.value?.trim() || '#';
+                        footerItems.push({ label, link });
+                    });
+                    settings.footerNav = footerItems;
+
+                    // Save settings
+                    saveSettings(settings);
+
+                    // Sync to Firestore
+                    const data = getAllData();
+                    await db.collection(FIRESTORE_COLLECTION).doc('content').set(data);
+
+                    updateSyncStatus(true);
+                    showToast('✅ All changes saved successfully!', 'success');
+
+                } catch (error) {
+                    console.error('Save error:', error);
+                    showToast('❌ Failed to save: ' + error.message, 'error');
+                }
+
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+                isSaving = false;
             }
 
             // ============================================================
@@ -1651,24 +1798,6 @@
                 `;
             }
 
-            function saveSiteSettings() {
-                const settings = getSettings();
-                settings.siteName = document.getElementById('siteNameInput').value.trim() || 'StreamingHub';
-                settings.logo = document.getElementById('logoUrlInput').value.trim() || 'img/logo.png';
-
-                document.querySelectorAll('#sectionToggles input[type="checkbox"]').forEach(cb => {
-                    settings[cb.dataset.setting] = cb.checked;
-                });
-
-                document.querySelectorAll('#authToggles input[type="checkbox"]').forEach(cb => {
-                    settings[cb.dataset.setting] = cb.checked;
-                });
-
-                saveSettings(settings);
-                showToast('✅ All settings saved!', 'success');
-                updateSyncStatus(false);
-            }
-
             // ============================================================
             // NAVIGATION UI
             // ============================================================
@@ -1732,31 +1861,6 @@
                 renderNavUI();
                 showToast('✅ Footer item removed!', 'success');
             };
-
-            function saveNavSettings() {
-                const settings = getSettings();
-
-                const navItems = [];
-                document.querySelectorAll('#navItemsContainer .settings-card').forEach(card => {
-                    const label = card.querySelector('.nav-label')?.value?.trim() || 'Link';
-                    const link = card.querySelector('.nav-link')?.value?.trim() || '#';
-                    const active = card.querySelector('.nav-active')?.checked || false;
-                    navItems.push({ label, link, active });
-                });
-                settings.navItems = navItems;
-
-                const footerItems = [];
-                document.querySelectorAll('#footerItemsContainer .settings-card').forEach(card => {
-                    const label = card.querySelector('.footer-label')?.value?.trim() || 'Link';
-                    const link = card.querySelector('.footer-link')?.value?.trim() || '#';
-                    footerItems.push({ label, link });
-                });
-                settings.footerNav = footerItems;
-
-                saveSettings(settings);
-                showToast('✅ Navigation saved!', 'success');
-                updateSyncStatus(false);
-            }
 
             // ============================================================
             // CRUD OPERATIONS
@@ -2027,8 +2131,7 @@
                 renderAll();
                 showToast(`Item ${index >= 0 ? 'updated' : 'added'}!`, 'success');
                 closeModal();
-                // Auto-sync after content change
-                syncToFirestore();
+                updateSyncStatus(false);
             });
 
             // ============================================================
@@ -2071,18 +2174,13 @@
                     adminEmailDisplay.textContent = ADMIN_CREDENTIALS.email;
                     adminAvatar.textContent = 'A';
 
-                    // Load data from localStorage
                     renderAll();
                     renderSiteSettingsUI();
                     renderNavUI();
                     updateSyncStatus(true);
 
-                    // Try to load from Firestore in background (but don't overwrite if user has made changes)
-                    if (!dataLoaded) {
-                        loadFromFirestore().then(() => {
-                            dataLoaded = true;
-                        });
-                    }
+                    // Load from Firestore once
+                    loadFromFirestore();
                 } else {
                     loginScreen.style.display = 'block';
                     adminPanel.style.display = 'none';
@@ -2122,6 +2220,11 @@
                 checkAuth();
             });
 
+            // ============================================================
+            // MASTER SAVE BUTTON
+            // ============================================================
+            document.getElementById('masterSaveBtn').addEventListener('click', masterSave);
+
             document.getElementById('syncToFirestoreBtn').addEventListener('click', function() {
                 syncToFirestore();
             });
@@ -2139,9 +2242,7 @@
                         modalForm.dispatchEvent(new Event('submit'));
                     } else {
                         e.preventDefault();
-                        saveSiteSettings();
-                        saveNavSettings();
-                        syncToFirestore();
+                        masterSave();
                     }
                 }
             });
@@ -2149,7 +2250,6 @@
             // ============================================================
             // INIT
             // ============================================================
-            // Pre-populate defaults if empty
             Object.keys(DEFAULT_DATA).forEach(key => {
                 const existing = localStorage.getItem(STORAGE_PREFIX + key);
                 if (existing === null) {
@@ -2157,15 +2257,13 @@
                 }
             });
 
-            // Ensure siteSettings exists
             getSettings();
-
             checkAuth();
 
-            console.log('🛠️ StreamingHub Admin Panel loaded.');
+            console.log('🛠️ StreamingHub Admin Panel - Professional Edition');
             console.log('📦 Data stored in localStorage with prefix:', STORAGE_PREFIX);
             console.log('🔑 Default credentials: admin@streaminghub.com / 123456');
-            console.log('💡 Press Ctrl+S to save and sync to Firestore');
+            console.log('💡 Click "Save All Changes" or press Ctrl+S to save everything');
             console.log('✅ Changes are saved locally and persist after refresh!');
 
         })();
