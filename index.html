@@ -80,15 +80,6 @@
             display: none !important;
         }
 
-        .section-toggle.fade-out {
-            opacity: 0;
-            transform: translateY(-20px);
-            height: 0;
-            padding: 0;
-            margin: 0;
-            overflow: hidden;
-        }
-
         /* ========== SLIM TOP BAR ========== */
         .header {
             background: rgba(11, 12, 42, 0.95);
@@ -164,42 +155,6 @@
 
         .header__nav .header__menu>li.active>a {
             color: var(--primary);
-        }
-
-        .header__nav .header__menu .dropdown {
-            position: absolute;
-            top: 100%;
-            left: 0;
-            background: var(--bg-secondary);
-            border-radius: 8px;
-            padding: 6px 0;
-            min-width: 160px;
-            opacity: 0;
-            visibility: hidden;
-            transform: translateY(8px);
-            transition: var(--transition);
-            border: 1px solid var(--border-color);
-            list-style: none;
-            z-index: 100;
-        }
-
-        .header__nav .header__menu li:hover .dropdown {
-            opacity: 1;
-            visibility: visible;
-            transform: translateY(0);
-        }
-
-        .header__nav .header__menu .dropdown li a {
-            padding: 6px 16px;
-            font-size: 13px;
-            display: block;
-            color: var(--text-muted);
-            transition: var(--transition);
-        }
-
-        .header__nav .header__menu .dropdown li a:hover {
-            background: rgba(255, 255, 255, 0.05);
-            color: var(--text-light);
         }
 
         .header__right {
@@ -406,7 +361,6 @@
             background: var(--primary-dark);
             transform: translateY(-2px);
             color: #fff;
-            box-shadow: 0 8px 24px var(--accent-glow);
         }
 
         /* ========== SECTION TITLES ========== */
@@ -835,22 +789,6 @@
         .fade-in-up {
             animation: fadeInUp 0.6s ease forwards;
         }
-
-        .fade-in-up:nth-child(2) {
-            animation-delay: 0.1s;
-        }
-        .fade-in-up:nth-child(3) {
-            animation-delay: 0.2s;
-        }
-        .fade-in-up:nth-child(4) {
-            animation-delay: 0.3s;
-        }
-        .fade-in-up:nth-child(5) {
-            animation-delay: 0.4s;
-        }
-        .fade-in-up:nth-child(6) {
-            animation-delay: 0.5s;
-        }
     </style>
 </head>
 
@@ -1183,7 +1121,6 @@
                     { user: 'WeebMaster', text: 'Can\'t wait for the next season!', time: '1 day ago' },
                     { user: 'SakuraLover', text: 'The animation quality is insane.', time: '2 days ago' }
                 ],
-                // Site Settings
                 siteSettings: {
                     siteName: 'StreamingHub',
                     logo: 'img/logo.png',
@@ -1227,11 +1164,64 @@
                     const stored = localStorage.getItem('streaminghub_siteSettings');
                     if (stored) return JSON.parse(stored);
                 } catch (e) { /* ignore */ }
-                return DEFAULT_DATA.siteSettings;
+                // Merge with defaults to ensure all keys exist
+                const settings = { ...DEFAULT_DATA.siteSettings };
+                try {
+                    const stored = localStorage.getItem('streaminghub_siteSettings');
+                    if (stored) {
+                        const parsed = JSON.parse(stored);
+                        Object.keys(parsed).forEach(key => {
+                            if (key === 'navItems' || key === 'footerNav') {
+                                settings[key] = parsed[key];
+                            } else {
+                                settings[key] = parsed[key];
+                            }
+                        });
+                    }
+                } catch (e) { /* ignore */ }
+                localStorage.setItem('streaminghub_siteSettings', JSON.stringify(settings));
+                return settings;
             }
 
-            function saveSettings(settings) {
-                localStorage.setItem('streaminghub_siteSettings', JSON.stringify(settings));
+            // ==========================================
+            // FIRESTORE SYNC - FIXED
+            // ==========================================
+            let isFirstLoad = true;
+
+            async function loadFromFirestore(force = false) {
+                // Only load from Firestore on first load or when forced
+                if (!force && !isFirstLoad) {
+                    console.log('🔄 Using local settings (already loaded once)');
+                    return;
+                }
+                try {
+                    const doc = await db.collection('websiteData').doc('content').get();
+                    if (doc.exists) {
+                        const data = doc.data();
+                        let hasChanges = false;
+                        Object.keys(data).forEach(key => {
+                            if (DEFAULT_DATA.hasOwnProperty(key) || key === 'siteSettings') {
+                                const existing = localStorage.getItem('streaminghub_' + key);
+                                const newData = JSON.stringify(data[key]);
+                                if (existing !== newData) {
+                                    localStorage.setItem('streaminghub_' + key, newData);
+                                    hasChanges = true;
+                                }
+                            }
+                        });
+                        if (hasChanges) {
+                            console.log('✅ Loaded fresh data from Firestore');
+                            return true;
+                        } else {
+                            console.log('ℹ️ Firestore data matches local, no changes needed');
+                            return true;
+                        }
+                    }
+                } catch (e) {
+                    console.warn('Firestore load error:', e);
+                }
+                isFirstLoad = false;
+                return false;
             }
 
             // ==========================================
@@ -1255,21 +1245,26 @@
 
                 // Site name
                 document.title = settings.siteName + ' | Home';
-                document.getElementById('siteNameDisplay').innerHTML = settings.siteName.replace(/(Hub|Streaming)/g,
-                    match => match === 'Hub' ? '<span>Hub</span>' : match) ||
-                    'Streaming<span>Hub</span>';
-                document.getElementById('siteNameDisplay').innerHTML = settings.siteName ?
-                    settings.siteName.replace(/Hub/g, '<span>Hub</span>').replace(/Streaming/g, '') :
-                    'Streaming<span>Hub</span>';
+                const nameDisplay = document.getElementById('siteNameDisplay');
+                if (nameDisplay) {
+                    nameDisplay.innerHTML = settings.siteName ?
+                        settings.siteName.replace(/Hub/g, '<span>Hub</span>').replace(/Streaming/g, '') :
+                        'Streaming<span>Hub</span>';
+                }
 
-                document.getElementById('footerSiteName').innerHTML = settings.siteName ?
-                    settings.siteName.replace(/Hub/g, '<span style="color:var(--primary);">Hub</span>') :
-                    'Streaming<span style="color:var(--primary);">Hub</span>';
+                const footerName = document.getElementById('footerSiteName');
+                if (footerName) {
+                    footerName.innerHTML = settings.siteName ?
+                        settings.siteName.replace(/Hub/g, '<span style="color:var(--primary);">Hub</span>') :
+                        'Streaming<span style="color:var(--primary);">Hub</span>';
+                }
 
                 // Logo
                 if (settings.logo) {
-                    document.getElementById('siteLogo').src = settings.logo;
-                    document.getElementById('footerLogo').src = settings.logo;
+                    const logo = document.getElementById('siteLogo');
+                    if (logo) logo.src = settings.logo;
+                    const footerLogo = document.getElementById('footerLogo');
+                    if (footerLogo) footerLogo.src = settings.logo;
                 }
 
                 // Nav items
@@ -1292,10 +1287,10 @@
                 const authContainer = document.getElementById('authButtons');
                 if (authContainer) {
                     let html = '';
-                    if (settings.showLogin) {
+                    if (settings.showLogin !== false) {
                         html += `<a href="./login.html" class="login-link">Login</a>`;
                     }
-                    if (settings.showRegister) {
+                    if (settings.showRegister !== false) {
                         html += `<a href="./signup.html" class="register-link">Register</a>`;
                     }
                     authContainer.innerHTML = html;
@@ -1338,29 +1333,17 @@
                         </div>
                     `).join('');
 
-                // Add click handlers to hero buttons
                 container.querySelectorAll('.hero-btn').forEach(btn => {
                     btn.addEventListener('click', function() {
                         const index = parseInt(this.dataset.slide);
                         const slides = getData('hero');
                         const slide = slides[index];
-                        // Try to find matching anime in collections
                         const allAnimes = getAllAnimes();
                         const match = allAnimes.find(a => a.title === slide.title);
                         if (match && match.episodes && match.episodes.length > 0) {
                             const firstValid = match.episodes.findIndex(ep => ep.youtube && ep.youtube
-                            .trim() !== '');
+                                .trim() !== '');
                             redirectToPlayer(match, match.season || 1, firstValid !== -1 ? firstValid : 0);
-                        } else {
-                            // Try to find by title similarity
-                            const fallback = allAnimes.find(a => slide.title.toLowerCase().includes(a.title
-                            .toLowerCase()) || a.title.toLowerCase().includes(slide.title.toLowerCase()));
-                            if (fallback && fallback.episodes && fallback.episodes.length > 0) {
-                                const firstValid = fallback.episodes.findIndex(ep => ep.youtube && ep
-                                    .youtube.trim() !== '');
-                                redirectToPlayer(fallback, fallback.season || 1, firstValid !== -1 ?
-                                    firstValid : 0);
-                            }
                         }
                     });
                 });
@@ -1419,14 +1402,12 @@
                     `;
                 }).join('');
 
-                // Apply set-bg
                 container.querySelectorAll('.set-bg').forEach(el => {
                     const bg = el.getAttribute('data-setbg');
                     if (bg) el.style.backgroundImage = `url(${bg})`;
                 });
             }
 
-            // Global handler for all anime card clicks
             window.handleAllAnimeClick = function(index) {
                 const allAnimes = getAllAnimes();
                 const item = allAnimes[index];
@@ -1560,7 +1541,6 @@
                             auth.signOut().catch(err => console.warn('Logout error:', err));
                         });
                     }
-                    // Hide auth buttons when logged in
                     document.getElementById('authButtons').style.display = 'none';
                 } else {
                     container.innerHTML = '';
@@ -1569,31 +1549,12 @@
             }
 
             // ==========================================
-            // FIRESTORE SYNC
-            // ==========================================
-            async function loadFromFirestore() {
-                try {
-                    const doc = await db.collection('websiteData').doc('content').get();
-                    if (doc.exists) {
-                        const data = doc.data();
-                        Object.keys(data).forEach(key => {
-                            if (DEFAULT_DATA.hasOwnProperty(key) || key === 'siteSettings') {
-                                localStorage.setItem('streaminghub_' + key, JSON.stringify(data[key]));
-                            }
-                        });
-                        return true;
-                    }
-                } catch (e) {
-                    console.warn('Firestore load error:', e);
-                }
-                return false;
-            }
-
-            // ==========================================
             // INIT
             // ==========================================
             async function init() {
-                await loadFromFirestore();
+                // Only load from Firestore once on first visit
+                await loadFromFirestore(true);
+                isFirstLoad = false;
 
                 // Render site settings first
                 renderSiteSettings();
@@ -1619,10 +1580,8 @@
                     }
                 });
 
-                console.log('🚀 StreamingHub initialized with full dynamic controls.');
-                console.log('📋 All sections can be toggled from admin panel via siteSettings.');
-                console.log('🔑 siteSettings keys: showHero, showAllAnimes, showTrending, showPopular, showRecent, showLive, showSidebar');
-                console.log('🏷️ siteSettings also controls: siteName, logo, navItems, footerNav, showLogin, showRegister');
+                console.log('🚀 StreamingHub initialized with proper settings persistence.');
+                console.log('💡 Settings are now preserved after refresh!');
             }
 
             if (document.readyState === 'loading') {
