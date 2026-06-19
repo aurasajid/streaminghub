@@ -37,6 +37,7 @@
             --bg-dark: #0b0c2a;
             --text-light: #ffffff;
             --text-muted: rgba(255, 255, 255, 0.7);
+            --border-color: rgba(255, 255, 255, 0.06);
             --border-radius: 12px;
             --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             --transition-smooth: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
@@ -84,7 +85,7 @@
         .header {
             background: rgba(11, 12, 42, 0.95);
             backdrop-filter: blur(12px);
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border-color);
             padding: 8px 0;
             position: sticky;
             top: 0;
@@ -1045,6 +1046,11 @@
                 .catch(err => console.warn('Persistence error:', err));
 
             // ==========================================
+            // STORAGE KEYS
+            // ==========================================
+            const STORAGE_PREFIX = 'streaminghub_';
+
+            // ==========================================
             // DEFAULT DATA
             // ==========================================
             const DEFAULT_DATA = {
@@ -1149,78 +1155,81 @@
             };
 
             // ==========================================
-            // HELPERS
+            // STORAGE HELPERS
             // ==========================================
             function getData(key) {
                 try {
-                    const stored = localStorage.getItem('streaminghub_' + key);
+                    const stored = localStorage.getItem(STORAGE_PREFIX + key);
                     if (stored) return JSON.parse(stored);
                 } catch (e) { /* ignore */ }
                 return DEFAULT_DATA[key] || [];
             }
 
+            function setData(key, value) {
+                localStorage.setItem(STORAGE_PREFIX + key, JSON.stringify(value));
+            }
+
             function getSettings() {
                 try {
-                    const stored = localStorage.getItem('streaminghub_siteSettings');
-                    if (stored) return JSON.parse(stored);
-                } catch (e) { /* ignore */ }
-                // Merge with defaults to ensure all keys exist
-                const settings = { ...DEFAULT_DATA.siteSettings };
-                try {
-                    const stored = localStorage.getItem('streaminghub_siteSettings');
+                    const stored = localStorage.getItem(STORAGE_PREFIX + 'siteSettings');
                     if (stored) {
                         const parsed = JSON.parse(stored);
-                        Object.keys(parsed).forEach(key => {
-                            if (key === 'navItems' || key === 'footerNav') {
-                                settings[key] = parsed[key];
-                            } else {
-                                settings[key] = parsed[key];
-                            }
-                        });
+                        // Merge with defaults to ensure all keys exist
+                        const merged = { ...DEFAULT_DATA.siteSettings, ...parsed };
+                        if (parsed.navItems) merged.navItems = parsed.navItems;
+                        if (parsed.footerNav) merged.footerNav = parsed.footerNav;
+                        localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(merged));
+                        return merged;
                     }
                 } catch (e) { /* ignore */ }
-                localStorage.setItem('streaminghub_siteSettings', JSON.stringify(settings));
-                return settings;
+                localStorage.setItem(STORAGE_PREFIX + 'siteSettings', JSON.stringify(DEFAULT_DATA.siteSettings));
+                return { ...DEFAULT_DATA.siteSettings };
             }
 
             // ==========================================
-            // FIRESTORE SYNC - FIXED
+            // FIRESTORE LOAD - SMART MERGE
             // ==========================================
-            let isFirstLoad = true;
+            let firestoreLoaded = false;
 
-            async function loadFromFirestore(force = false) {
-                // Only load from Firestore on first load or when forced
-                if (!force && !isFirstLoad) {
-                    console.log('🔄 Using local settings (already loaded once)');
+            async function loadFromFirestore() {
+                // Only load from Firestore once per session
+                if (firestoreLoaded) {
+                    console.log('ℹ️ Firestore already loaded this session, using local data');
                     return;
                 }
+
                 try {
                     const doc = await db.collection('websiteData').doc('content').get();
                     if (doc.exists) {
                         const data = doc.data();
                         let hasChanges = false;
+
                         Object.keys(data).forEach(key => {
                             if (DEFAULT_DATA.hasOwnProperty(key) || key === 'siteSettings') {
-                                const existing = localStorage.getItem('streaminghub_' + key);
+                                const existing = localStorage.getItem(STORAGE_PREFIX + key);
                                 const newData = JSON.stringify(data[key]);
                                 if (existing !== newData) {
-                                    localStorage.setItem('streaminghub_' + key, newData);
+                                    localStorage.setItem(STORAGE_PREFIX + key, newData);
                                     hasChanges = true;
                                 }
                             }
                         });
+
                         if (hasChanges) {
                             console.log('✅ Loaded fresh data from Firestore');
+                            firestoreLoaded = true;
                             return true;
                         } else {
                             console.log('ℹ️ Firestore data matches local, no changes needed');
+                            firestoreLoaded = true;
                             return true;
                         }
                     }
                 } catch (e) {
                     console.warn('Firestore load error:', e);
                 }
-                isFirstLoad = false;
+
+                firestoreLoaded = true;
                 return false;
             }
 
@@ -1552,9 +1561,8 @@
             // INIT
             // ==========================================
             async function init() {
-                // Only load from Firestore once on first visit
-                await loadFromFirestore(true);
-                isFirstLoad = false;
+                // Load from Firestore (only once)
+                await loadFromFirestore();
 
                 // Render site settings first
                 renderSiteSettings();
@@ -1580,8 +1588,10 @@
                     }
                 });
 
-                console.log('🚀 StreamingHub initialized with proper settings persistence.');
-                console.log('💡 Settings are now preserved after refresh!');
+                console.log('🚀 StreamingHub initialized!');
+                console.log('📦 Data loaded from localStorage with prefix:', STORAGE_PREFIX);
+                console.log('☁️ Firestore loaded once, changes preserved locally');
+                console.log('💡 Settings persist after refresh!');
             }
 
             if (document.readyState === 'loading') {
